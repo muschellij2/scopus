@@ -10,6 +10,6 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-# rscopus
+# scopus paper
 
 The goal of this repo is to house the `rscopus` paper submission to the R Journal.

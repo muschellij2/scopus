@@ -1,0 +1,290 @@
+% !TeX root = RJwrapper.tex
+\title{Gathering Bibliometric Information using Scopus}
+\author{by John Muschelli}
+
+\maketitle
+
+\abstract{%
+An abstract of less than 150 words.
+}
+
+% Any extra LaTeX you need in the preamble
+
+\hypertarget{introduction}{%
+\subsection{Introduction}\label{introduction}}
+
+Scopus a repository of information about scientific articles and books,
+which includes information about authors, citations, and abstracts of
+these pieces of literature. Scopus claims to have the largest database
+of this information.
+
+One common task for researchers is to keep the curriculum vitae (CV) up
+to date. That requires having up to date information on the papers
+published and under submission. Keeping track of these papers can be
+tedious and automated solutions could exist, but are not widely used
+(THINK OF SERVICES THAT TRY TO do this). One conern is always to be
+missing certain crucial papers in your CV. Although \pkg{rscopus} does
+not provide these tools specifically, it can be used to consistently
+cross-reference information about publications with a CV.
+
+Additionally on CVs, it is useful to present information of the impact
+of a paper on the CV. This can be done by highlighting certain pieces of
+information, such is done in NIH biosketches, or ranking them based on
+some metric. The metric commonly used is the number of citations. Also,
+information about the journal impact factor may be taken into account.
+We do not note that these are particularly good metrics or metrics that
+reflect true impact, but are simply those that we have seen used in
+practice.
+
+\pkg{rscopus} allows you to interface with Scopus APIs and gather
+information about authors, affiliations, articles, and abstracts. The
+\pkg{bibliometrix} package provides a level of integration that is
+useful for using multiple packages that deal with bibliometric data,
+incorporating functionality from \pkg{rscopus}. The \pkg{bibliometrix}
+package also enables users to analyze data from ISI Web of Knowledge
+(WoK) and PubMed. Web of Knowledge is one competitor to Scopus, but
+\pkg{bibliometrix} does not have an interface to the WoK API; therefore
+data must be manually exported from the site into \texttt{R}. Additional
+access to the web of Science API would be useful and has been
+implemented in a GitHub package \pkg{rwos}
+(\url{https://github.com/juba/rwos}), but is not on CRAN.
+
+Moreover, other packages such as \pkg{scholar} and \pkg{gcite} can
+provide interfaces to the Google Scholar citation information. Using
+these in combination with \pkg{rscopus} can more likely guarantee
+complete information.
+
+As compared to Google Scholar, WoK and Scopus information is
+\textbf{more curated} (is that true?).
+
+As many pieces of academic promotion are related citation metrics or
+impact, these metrics can have real-life implications.
+
+Here we will present a few examples of how to use the \pkg{rscopus}
+package, and present a simple descriptive analysis of citations and
+citation indices from people within the same field.
+
+\hypertarget{api-key}{%
+\subsection{API Key}\label{api-key}}
+
+Before using the package, one must obtain an access key to the API from
+\url{https://dev.elsevier.com/sc_apis.html} with the following steps:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Go to \url{https://dev.elsevier.com/user/login}. Login or create a
+  free account.
+\item
+  Click ``Create API Key''. Put in a label, such as
+  \texttt{rscopus\ key}. Add a website. \url{http://example.com} is fine
+  if you do not have a site.
+\item
+  \textbf{Read} and agree to the terms of service if you do indeed
+  agree.
+\item
+  Add \texttt{Elsevier\_API\ =\ "API\ KEY\ GOES\ HERE"} to
+  \texttt{\textasciitilde{}/.Renviron} file, or add
+  \texttt{export\ Elsevier\_API=API\ KEY\ GOES\ HERE} to your
+  \texttt{\textasciitilde{}/.bash\_profile}.
+\end{enumerate}
+
+Alternatively, you you can either set the API key using
+\texttt{rscopus::set\_api\_key} or by
+\texttt{options("elsevier\_api\_key"\ =\ api\_key)}. You can access the
+API key using \texttt{rscopus::get\_api\_key}.
+
+You should be able to test out the API key using the
+\href{https://dev.elsevier.com/scopus.html}{interactive Scopus APIs}.
+
+\hypertarget{a-note-about-api-keys-and-ip-addresses}{%
+\subsubsection{A note about API keys and IP
+addresses}\label{a-note-about-api-keys-and-ip-addresses}}
+
+The API Key is bound to a set of IP addresses, usually bound to your
+institution or organization (see
+\url{https://dev.elsevier.com/tecdoc_api_authentication.html}).
+Therefore, if you are using \pkg{rscopus} for a Shiny application, you
+must host the Shiny application from the institution/organization
+servers in some way. Also, you cannot access the Scopus API with this
+key if you are offsite and must VPN into the server or use a computing
+cluster with an institution IP.
+
+\hypertarget{use-cases}{%
+\subsection{Use cases}\label{use-cases}}
+
+\begin{Schunk}
+\begin{Sinput}
+library(rscopus)
+author_info = author_retrieval(last_name = "Muschelli", first_name = "J")
+\end{Sinput}
+\begin{Soutput}
+#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28J%29%2BAND%2BAUTHLAST%28Muschelli%29
+\end{Soutput}
+\begin{Soutput}
+#> Authors found:
+\end{Soutput}
+\begin{Soutput}
+#>        auth_name       au_id affil_id
+#> 1 John Muschelli 40462056100 60006183
+#>                                        affil_name
+#> 1 Johns Hopkins Bloomberg School of Public Health
+\end{Soutput}
+\begin{Soutput}
+#> HTTP specified is:https://api.elsevier.com/content/author/author_id/40462056100
+\end{Soutput}
+\begin{Sinput}
+names(author_info$content)
+\end{Sinput}
+\begin{Soutput}
+#> [1] "author-retrieval-response"
+\end{Soutput}
+\end{Schunk}
+
+In many cases with the API, you will specify the author identifier
+(\texttt{au\_id}) instead of a first and last name, as there may be many
+authors with the same name. This identifier is unique to this author,
+though curation errors do happen and someone may have 2 unique
+identifiers. These identifiers can be merged by request on the Scopus
+website. In order to get the identifier from Scopus, you can search
+using a first and last name using the \texttt{process\_author\_name}
+command.
+
+\begin{Schunk}
+\begin{Sinput}
+auth_name = process_author_name(last_name = "Muschelli", first_name = "John")
+\end{Sinput}
+\begin{Soutput}
+#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28John%29%2BAND%2BAUTHLAST%28Muschelli%29
+\end{Soutput}
+\begin{Soutput}
+#> Authors found:
+\end{Soutput}
+\begin{Soutput}
+#>        auth_name       au_id affil_id
+#> 1 John Muschelli 40462056100 60006183
+#>                                        affil_name
+#> 1 Johns Hopkins Bloomberg School of Public Health
+\end{Soutput}
+\begin{Sinput}
+auth_name
+\end{Sinput}
+\begin{Soutput}
+#> $first_name
+#> [1] "John"
+#> 
+#> $last_name
+#> [1] "Muschelli"
+#> 
+#> $au_id
+#> [1] "40462056100"
+\end{Soutput}
+\end{Schunk}
+
+\hypertarget{retrieving-information-about-an-author}{%
+\subsubsection{Retrieving information about an
+author}\label{retrieving-information-about-an-author}}
+
+Most times, yo udo not have
+
+\begin{Schunk}
+\begin{Sinput}
+auth_info = get_author_info(last_name = "Smith", first_name = "S")
+\end{Sinput}
+\begin{Soutput}
+#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28S%29%2BAND%2BAUTHLAST%28Smith%29
+\end{Soutput}
+\begin{Sinput}
+head(auth_info, 5)
+\end{Sinput}
+\begin{Soutput}
+#>                    auth_name       au_id affil_id
+#> 1          Alfred J.S. Smith  7406754790 60003269
+#> 2             Peter J. Smith  7406996870 60002316
+#> 3           Peter J.S. Smith 55723644900 60015875
+#> 4 Priscilla S. Kincaid-Smith 35805496900 60026553
+#> 5          Sidney C.C. Smith  7406657586 60025111
+#>                                        affil_name
+#> 1                            Princeton University
+#> 2               Victoria University of Wellington
+#> 3                          University of Aberdeen
+#> 4                         University of Melbourne
+#> 5 The University of North Carolina at Chapel Hill
+\end{Soutput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+ssmith = process_author_name(last_name = "Smith", first_name = "S")
+\end{Sinput}
+\begin{Soutput}
+#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28S%29%2BAND%2BAUTHLAST%28Smith%29
+\end{Soutput}
+\begin{Soutput}
+#> Authors found:
+\end{Soutput}
+\begin{Soutput}
+#>           auth_name      au_id affil_id           affil_name
+#> 1 Alfred J.S. Smith 7406754790 60003269 Princeton University
+\end{Soutput}
+\begin{Sinput}
+ssmith
+\end{Sinput}
+\begin{Soutput}
+#> $first_name
+#> [1] "S"
+#> 
+#> $last_name
+#> [1] "Smith"
+#> 
+#> $au_id
+#> [1] "7406754790"
+\end{Soutput}
+\end{Schunk}
+
+This section may contain a figure such as Figure \ref{figure:rlogo}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics{Rlogo}
+  \caption{The logo of R.}
+  \label{figure:rlogo}
+\end{figure}
+
+\hypertarget{another-section}{%
+\subsection{Another section}\label{another-section}}
+
+There will likely be several sections, perhaps including code snippets,
+such as:
+
+\begin{Schunk}
+\begin{Sinput}
+x <- 1:10
+x
+\end{Sinput}
+\begin{Soutput}
+#>  [1]  1  2  3  4  5  6  7  8  9 10
+\end{Soutput}
+\end{Schunk}
+
+\hypertarget{summary}{%
+\subsection{Summary}\label{summary}}
+
+This file is only a basic article template. For full details of
+\emph{The R Journal} style and information on how to prepare your
+article for submission, see the
+\href{https://journal.r-project.org/share/author-guide.pdf}{Instructions
+for Authors}.
+
+\bibliography{RJreferences}
+
+
+\address{%
+John Muschelli\\
+Department of Biostatistics, Johns Hopkins Bloomberg School of Public
+Health\\
+615 N Wolfe St Baltimore, MD 21205\\
+}
+\href{mailto:jmuschel@jhsph.edu}{\nolinkurl{jmuschel@jhsph.edu}}
+
