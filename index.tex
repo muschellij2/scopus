@@ -1,11 +1,14 @@
 % !TeX root = RJwrapper.tex
-\title{Gathering Bibliometric Information using Scopus}
+\title{Gathering Bibliometric Information using Scopus using rscopus}
 \author{by John Muschelli}
 
 \maketitle
 
 \abstract{%
-An abstract of less than 150 words.
+We demonstrate how to download author and affiliation using the
+\texttt{rscopus} package, interacing with the Elsevier Scopus API. We
+show histograms of the number of citations from an author, as well as
+calculating citation metrics with the output.
 }
 
 % Any extra LaTeX you need in the preamble
@@ -13,10 +16,13 @@ An abstract of less than 150 words.
 \hypertarget{introduction}{%
 \subsection{Introduction}\label{introduction}}
 
-Scopus a repository of information about scientific articles and books,
-which includes information about authors, citations, and abstracts of
-these pieces of literature. Scopus claims to have the largest database
-of this information.
+We would like to gather information about publications, authors, and
+institutions with respect to published research. Scopus a repository of
+information about scientific articles and books, which includes
+information about authors, citations, and abstracts of these pieces of
+literature. Scopus claims to have the largest database of this
+information. Therefore, providing users an interface to this repository
+should be worthwhile.
 
 One common task for researchers is to keep the curriculum vitae (CV) up
 to date. That requires having up to date information on the papers
@@ -63,6 +69,15 @@ impact, these metrics can have real-life implications.
 Here we will present a few examples of how to use the \pkg{rscopus}
 package, and present a simple descriptive analysis of citations and
 citation indices from people within the same field.
+
+Scopus has a number of APIs available
+(\url{https://dev.elsevier.com/sc_apis.html}). We will distinguish
+between 2 types of APIs: search APIs and retrieval APIs. The retrieval
+APIs require unique indentifiers, such as an author ID or affiliation
+ID, to retrieve information. As these identifiers are not commonly
+known, we will use the search APIs to search on other criteria to obtain
+these identifiers. We will focus on gathering information about authors,
+affiliations, and citations.
 
 \hypertarget{api-key}{%
 \subsection{API Key}\label{api-key}}
@@ -114,170 +129,841 @@ cluster with an institution IP.
 \hypertarget{use-cases}{%
 \subsection{Use cases}\label{use-cases}}
 
+\hypertarget{processing-author-names-to-ids}{%
+\subsubsection{Processing author names to
+IDs}\label{processing-author-names-to-ids}}
+
+Researchers commonly would like to gather information about a set of
+authors. Most times the authors are the given by first and last names or
+initials; additional information such as affiliation may be available.
+Scopus provides unique identifier for authors (\texttt{au\_id}) or
+affiliations (\texttt{affil\_id}). In many cases with the API, you will
+specify the author identifier (\texttt{au\_id}) instead of a first and
+last name, as there may be many authors with the same name. This
+identifier is unique to this author, though curation errors do happen
+and someone may have 2 unique identifiers. These identifiers can be
+merged by request on the Scopus website. In order to get the identifier
+from Scopus, you can search using a first and last name using the
+\texttt{process\_author\_name} command. For example, let us try to
+idnetify the author ID for John Muschelli:
+
 \begin{Schunk}
 \begin{Sinput}
 library(rscopus)
-author_info = author_retrieval(last_name = "Muschelli", first_name = "J")
+auth_info = process_author_name(last_name = "Muschelli", first_name = "John")
 \end{Sinput}
 \begin{Soutput}
-#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28J%29%2BAND%2BAUTHLAST%28Muschelli%29
-\end{Soutput}
-\begin{Soutput}
-#> Authors found:
-\end{Soutput}
-\begin{Soutput}
-#>        auth_name       au_id affil_id
-#> 1 John Muschelli 40462056100 60006183
-#>                                        affil_name
-#> 1 Johns Hopkins Bloomberg School of Public Health
-\end{Soutput}
-\begin{Soutput}
-#> HTTP specified is:https://api.elsevier.com/content/author/author_id/40462056100
+       auth_name       au_id affil_id
+1 John Muschelli 40462056100 60006183
+                                       affil_name
+1 Johns Hopkins Bloomberg School of Public Health
 \end{Soutput}
 \begin{Sinput}
-names(author_info$content)
+auth_info
 \end{Sinput}
 \begin{Soutput}
-#> [1] "author-retrieval-response"
+$first_name
+[1] "John"
+
+$last_name
+[1] "Muschelli"
+
+$au_id
+[1] "40462056100"
 \end{Soutput}
 \end{Schunk}
 
-In many cases with the API, you will specify the author identifier
-(\texttt{au\_id}) instead of a first and last name, as there may be many
-authors with the same name. This identifier is unique to this author,
-though curation errors do happen and someone may have 2 unique
-identifiers. These identifiers can be merged by request on the Scopus
-website. In order to get the identifier from Scopus, you can search
-using a first and last name using the \texttt{process\_author\_name}
-command.
+The output is a simple list of first and last name with an author ID.
+The function chooses the first author found, which may be useful if the
+author name is somewhat unique.
+
+\hypertarget{retrieving-author-citation-data}{%
+\subsubsection{Retrieving author citation
+data}\label{retrieving-author-citation-data}}
+
+In order to get data about author papers and citations, the
+\texttt{author\_data} function will retrieve this information:
 
 \begin{Schunk}
 \begin{Sinput}
-auth_name = process_author_name(last_name = "Muschelli", first_name = "John")
+jm = author_data(last_name = "Muschelli", first_name = "John")
 \end{Sinput}
 \begin{Soutput}
-#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28John%29%2BAND%2BAUTHLAST%28Muschelli%29
-\end{Soutput}
-\begin{Soutput}
-#> Authors found:
-\end{Soutput}
-\begin{Soutput}
-#>        auth_name       au_id affil_id
-#> 1 John Muschelli 40462056100 60006183
-#>                                        affil_name
-#> 1 Johns Hopkins Bloomberg School of Public Health
+       auth_name       au_id affil_id
+1 John Muschelli 40462056100 60006183
+                                       affil_name
+1 Johns Hopkins Bloomberg School of Public Health
+list(query = "AU-ID(40462056100)", count = 25, start = 0, view = "COMPLETE", 
+    facets = "subjarea(sort=fd,count=350)")
+$query
+[1] "AU-ID(40462056100)"
+
+$count
+[1] 25
+
+$start
+[1] 0
+
+$view
+[1] "COMPLETE"
+
+$facets
+[1] "subjarea(sort=fd,count=350)"
+
+Response [https://api.elsevier.com/content/search/scopus?query=AU-ID%2840462056100%29&count=25&start=0&view=COMPLETE&facets=subjarea%28sort%3Dfd%2Ccount%3D350%29]
+  Date: 2018-10-15 18:45
+  Status: 200
+  Content-Type: application/json;charset=UTF-8
+  Size: 257 kB
+
+
+  |                                                                       
+  |=================================================================| 100%
 \end{Soutput}
 \begin{Sinput}
-auth_name
+names(jm)
 \end{Sinput}
 \begin{Soutput}
-#> $first_name
-#> [1] "John"
-#> 
-#> $last_name
-#> [1] "Muschelli"
-#> 
-#> $au_id
-#> [1] "40462056100"
+[1] "entries"   "df"        "full_data"
 \end{Soutput}
 \end{Schunk}
+
+We see the output is a list of the converted \texttt{entries} from the
+Scopus API, a \texttt{data.frame} of the results for citations, and a
+list named \texttt{full\_data}. The \texttt{data.frame} \texttt{df} has
+the information many users wish to retrieve, which is information about
+the author's documents and citations:
+
+\begin{Schunk}
+\begin{Sinput}
+head(jm$df[, c("dc:identifier", "eid", "dc:title", "dc:creator", 
+"prism:publicationName", "prism:doi", "citedby-count",  "pii", "pubmed-id")])
+\end{Sinput}
+\begin{Soutput}
+          dc:identifier                eid
+1 SCOPUS_ID:85053246791 2-s2.0-85053246791
+2 SCOPUS_ID:85043338865 2-s2.0-85043338865
+3 SCOPUS_ID:85047750078 2-s2.0-85047750078
+4 SCOPUS_ID:85028874240 2-s2.0-85028874240
+5 SCOPUS_ID:85050271095 2-s2.0-85050271095
+6 SCOPUS_ID:85009266881 2-s2.0-85009266881
+                                                                                                                                                                     dc:title
+1                                                        Objective Evaluation of Multiple Sclerosis Lesion Segmentation using a Data Management and Processing Infrastructure
+2                                                                        MIMoSA: An Automated Method for Intermodal Segmentation Analysis of Multiple Sclerosis Brain Lesions
+3                       Radiomic subtyping improves disease stratification beyond key molecular, clinical, and standard imaging characteristics in patients with glioblastoma
+4                                    Feasibility of Coping Effectiveness Training for Caregivers of Children with Autism Spectrum Disorder: a Genetic Counseling Intervention
+5                                                                                     Freesurfer: Connecting the Freesurfer software with R [version 1; referees: 2 approved]
+6 Thrombolytic removal of intraventricular haemorrhage in treatment of severe stroke: results of the randomised, multicentre, multiregion, placebo-controlled CLEAR III trial
+          dc:creator         prism:publicationName
+1       Commowick O.            Scientific Reports
+2       Valcarcel A.       Journal of Neuroimaging
+3   Kickingereder P.                Neuro-Oncology
+4 Haakonsen Smith C. Journal of Genetic Counseling
+5       Muschelli J.                 F1000Research
+6          Hanley D.                    The Lancet
+                       prism:doi citedby-count               pii pubmed-id
+1     10.1038/s41598-018-31911-7             0              <NA>      <NA>
+2              10.1111/jon.12506             0              <NA>      <NA>
+3          10.1093/neuonc/nox188             3              <NA>      <NA>
+4      10.1007/s10897-017-0144-1             2              <NA>      <NA>
+5 10.12688/f1000research.14361.1             0              <NA>      <NA>
+6  10.1016/S0140-6736(16)32410-2            46 S0140673616324102  28081952
+\end{Soutput}
+\end{Schunk}
+
+We see that the \texttt{full\_data} has this \texttt{df} inside it, with
+other \texttt{data.frame}s:
+
+\begin{Schunk}
+\begin{Sinput}
+names(jm$full_data)
+\end{Sinput}
+\begin{Soutput}
+[1] "df"             "affiliation"    "author"         "openaccessFlag"
+\end{Soutput}
+\end{Schunk}
+
+These additional \texttt{data.frame}s can have additional information
+about co-author affiliations or co-author information. This information
+may be useful for creating network graphs. For example, to get all
+authors from all the papers, you can use the \texttt{author} element
+from \texttt{full\_data}:
+
+\begin{Schunk}
+\begin{Sinput}
+head(jm$full_data$author)
+\end{Sinput}
+\begin{Soutput}
+  @_fa @seq                                                    author-url
+1 true    1  https://api.elsevier.com/content/author/author_id/8431704700
+2 true    2 https://api.elsevier.com/content/author/author_id/57203861434
+3 true    3 https://api.elsevier.com/content/author/author_id/57199507814
+4 true    4 https://api.elsevier.com/content/author/author_id/57197801981
+5 true    5 https://api.elsevier.com/content/author/author_id/57203867656
+6 true    6 https://api.elsevier.com/content/author/author_id/57203864793
+       authid     authname   surname given-name initials afid.@_fa
+1  8431704700 Commowick O. Commowick    Olivier       O.      true
+2 57203861434    Istace A.    Istace     Audrey       A.      true
+3 57199507814      Kain M.      Kain    Michaël       M.      true
+4 57197801981   Laurent B.   Laurent   Baptiste       B.      true
+5 57203867656     Leray F.     Leray    Florent       F.      true
+6 57203864793     Simon M.     Simon    Mathieu       M.      true
+    afid.$ entry_number
+1 60030553            1
+2 60001780            1
+3 60030553            1
+4 60105610            1
+5 60030553            1
+6 60030553            1
+\end{Soutput}
+\end{Schunk}
+
+The column \texttt{entry\_number} should merge with the
+\texttt{data.frame} of citations, as well as the information about
+author affiliations, which is located in the \texttt{affiliation}
+\texttt{data.frame} from \texttt{full\_data}:
+
+\begin{Schunk}
+\begin{Sinput}
+head(jm$full_data$affiliation)
+\end{Sinput}
+\begin{Soutput}
+  @_fa
+1 true
+2 true
+3 true
+4 true
+5 true
+6 true
+                                                       affiliation-url
+1 https://api.elsevier.com/content/affiliation/affiliation_id/60030553
+2 https://api.elsevier.com/content/affiliation/affiliation_id/60001780
+3 https://api.elsevier.com/content/affiliation/affiliation_id/60105610
+4 https://api.elsevier.com/content/affiliation/affiliation_id/60062760
+5 https://api.elsevier.com/content/affiliation/affiliation_id/60028893
+6 https://api.elsevier.com/content/affiliation/affiliation_id/60028893
+      afid
+1 60030553
+2 60001780
+3 60105610
+4 60062760
+5 60028893
+6 60028893
+                                                                affilname
+1                                                  Universite de Rennes 1
+2                                             Centre Hospitalier Lyon-Sud
+3                     Laboratoire de Traitement de l'Information Medicale
+4 Centre de Recherche en Acquisition et Traitement d'Images pour la Sante
+5                              Centre Hospitalier Universitaire de Rennes
+6                              Centre Hospitalier Universitaire de Rennes
+  affiliation-city affiliation-country entry_number name-variant.@_fa
+1           Rennes              France            1              <NA>
+2             Lyon              France            1              <NA>
+3            Brest              France            1              <NA>
+4     Villeurbanne              France            1              <NA>
+5           Rennes              France            1              <NA>
+6           Rennes              France            1              <NA>
+  name-variant.$
+1           <NA>
+2           <NA>
+3           <NA>
+4           <NA>
+5           <NA>
+6           <NA>
+\end{Soutput}
+\end{Schunk}
+
+This information is rich for understanding information about an author's
+publication record, how many citations are recorded for a specific
+article, which journals have been published in, and who has co-authored
+publications with an author.
+
+\hypertarget{calculating-author-indices}{%
+\subsubsection{Calculating author
+indices}\label{calculating-author-indices}}
+
+With the data from the \texttt{author\_data} output, we can calculate
+the overall H-index (CITE) as follows:
+
+\begin{Schunk}
+\begin{Sinput}
+library(dplyr)
+h_data = jm$df %>% 
+  mutate(citations = as.numeric(`citedby-count`)) %>% 
+  arrange(-citations) %>% 
+  mutate(paper = 1,
+         n_papers = cumsum(paper))
+h_index = max(which(h_data$citations >= h_data$n_papers))
+h_index
+\end{Sinput}
+\begin{Soutput}
+[1] 15
+\end{Soutput}
+\end{Schunk}
+
+Using \pkg{ggplot2}, we can also visually show the H-index computation,
+where we plot the number of citations versus the number of papers
+(cumulatively) along with the X-Y line:
+
+\begin{Schunk}
+\begin{Sinput}
+library(ggplot2)
+h_data %>% 
+  ggplot(aes(x = n_papers, y = citations)) + 
+  geom_point() + geom_abline(slope = 1, intercept = 0) + 
+  geom_hline(yintercept = h_index, color = "red")
+\end{Sinput}
+
+\includegraphics{index_files/figure-latex/unnamed-chunk-7-1} \end{Schunk}
+
+Additional indices can be created from the dat.
 
 \hypertarget{retrieving-information-about-an-author}{%
 \subsubsection{Retrieving information about an
 author}\label{retrieving-information-about-an-author}}
 
-Most times, yo udo not have
+In \texttt{process\_author\_name}, we demonstrated how to get
+information form an author with a relatively unique name. If this is not
+the case, the \texttt{get\_complete\_author\_info}, which powers
+\texttt{process\_author\_name}, can present more results. In order to
+retrieve author IDs from first and last names, the
+\texttt{get\_complete\_author\_info} can be used. Here we search for
+authors with the last name West and first initial M:
 
 \begin{Schunk}
 \begin{Sinput}
-auth_info = get_author_info(last_name = "Smith", first_name = "S")
+last_name = "West"
+first_name = "M"
+auth_info_list = get_complete_author_info(
+  last_name = last_name, 
+  first_name = first_name)
+class(auth_info_list)
 \end{Sinput}
 \begin{Soutput}
-#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28S%29%2BAND%2BAUTHLAST%28Smith%29
+[1] "list"
 \end{Soutput}
 \begin{Sinput}
-head(auth_info, 5)
+names(auth_info_list)
 \end{Sinput}
 \begin{Soutput}
-#>                    auth_name       au_id affil_id
-#> 1          Alfred J.S. Smith  7406754790 60003269
-#> 2             Peter J. Smith  7406996870 60002316
-#> 3           Peter J.S. Smith 55723644900 60015875
-#> 4 Priscilla S. Kincaid-Smith 35805496900 60026553
-#> 5          Sidney C.C. Smith  7406657586 60025111
-#>                                        affil_name
-#> 1                            Princeton University
-#> 2               Victoria University of Wellington
-#> 3                          University of Aberdeen
-#> 4                         University of Melbourne
-#> 5 The University of North Carolina at Chapel Hill
+[1] "get_statement" "content"      
 \end{Soutput}
 \end{Schunk}
+
+We see here, which is common in in some low-level functions returned
+from the API, the output is a list with elements
+\texttt{get\_statement}, which returns an object of class
+\texttt{response} (from the \pkg{pttr} package), and \texttt{content},
+which is the content from the response. Most times, the \texttt{content}
+is of interest, but failed requrests may be explored with the
+\texttt{get\_statement} output.
+
+In many \texttt{content} elements returned from the API, there are
+elements of the list named \texttt{entries} or \texttt{entry}. The
+low-level function \texttt{gen\_entries\_to\_df} attempts to coerce this
+list into a standard \texttt{data.frame} for more usability, but may not
+perform perfectly as lists from JSON cannot always be directly coerced
+into a rectangular format. For example, here we will convert that output
+into a \texttt{data.frame}:
 
 \begin{Schunk}
 \begin{Sinput}
-ssmith = process_author_name(last_name = "Smith", first_name = "S")
+coerced = gen_entries_to_df(auth_info_list$content$`search-results`$entry)
+names(coerced)
 \end{Sinput}
 \begin{Soutput}
-#> HTTP specified is (without API key): https://api.elsevier.com/content/search/author?query=AUTHFIRST%28S%29%2BAND%2BAUTHLAST%28Smith%29
-\end{Soutput}
-\begin{Soutput}
-#> Authors found:
-\end{Soutput}
-\begin{Soutput}
-#>           auth_name      au_id affil_id           affil_name
-#> 1 Alfred J.S. Smith 7406754790 60003269 Princeton University
+[1] "df"           "name-variant" "subject-area"
 \end{Soutput}
 \begin{Sinput}
-ssmith
+head(coerced$df)
 \end{Sinput}
 \begin{Soutput}
-#> $first_name
-#> [1] "S"
-#> 
-#> $last_name
-#> [1] "Smith"
-#> 
-#> $au_id
-#> [1] "7406754790"
+  @_fa                                                     prism:url
+1 true https://api.elsevier.com/content/author/author_id/35480328200
+2 true https://api.elsevier.com/content/author/author_id/35419377800
+3 true  https://api.elsevier.com/content/author/author_id/7003392768
+4 true  https://api.elsevier.com/content/author/author_id/7402395730
+5 true  https://api.elsevier.com/content/author/author_id/7402068812
+6 true  https://api.elsevier.com/content/author/author_id/7401998578
+          dc:identifier                eid               orcid
+1 AUTHOR_ID:35480328200 9-s2.0-35480328200 0000-0002-0839-3449
+2 AUTHOR_ID:35419377800 9-s2.0-35419377800                <NA>
+3  AUTHOR_ID:7003392768  9-s2.0-7003392768                <NA>
+4  AUTHOR_ID:7402395730  9-s2.0-7402395730                <NA>
+5  AUTHOR_ID:7402068812  9-s2.0-7402068812                <NA>
+6  AUTHOR_ID:7401998578  9-s2.0-7401998578                <NA>
+  preferred-name.surname preferred-name.given-name preferred-name.initials
+1                   West                 Catharine                      C.
+2                   West                Malcolm J.                    M.J.
+3            Diener-West                     Marie                      M.
+4                   West                 Robert M.                    R.M.
+5                   West           Michael Abigail                    M.A.
+6                   West                  David M.                    D.M.
+  document-count
+1            269
+2            191
+3            186
+4            166
+5            161
+6            157
+                                            affiliation-current.affiliation-url
+1          https://api.elsevier.com/content/affiliation/affiliation_id/60003771
+2          https://api.elsevier.com/content/affiliation/affiliation_id/60019870
+3          https://api.elsevier.com/content/affiliation/affiliation_id/60006183
+4          https://api.elsevier.com/content/affiliation/affiliation_id/60012070
+5 https://api.elsevier.com/content/affiliation/affiliation_id/60012018 60023691
+6          https://api.elsevier.com/content/affiliation/affiliation_id/60008221
+  affiliation-current.affiliation-id
+1                           60003771
+2                           60019870
+3                           60006183
+4                           60012070
+5                  60012018 60023691
+6                           60008221
+             affiliation-current.affiliation-name
+1                        University of Manchester
+2                James Cook University, Australia
+3 Johns Hopkins Bloomberg School of Public Health
+4                             University of Leeds
+5         University of Pittsburgh Medical Center
+6                               Massey University
+  affiliation-current.affiliation-city
+1                           Manchester
+2                           Townsville
+3                            Baltimore
+4                                Leeds
+5             Pittsburgh San Francisco
+6                     Palmerston North
+  affiliation-current.affiliation-country entry_number
+1                          United Kingdom            1
+2                               Australia            2
+3                           United States            3
+4                          United Kingdom            4
+5             United States United States            5
+6                             New Zealand            6
 \end{Soutput}
 \end{Schunk}
 
-This section may contain a figure such as Figure \ref{figure:rlogo}.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics{Rlogo}
-  \caption{The logo of R.}
-  \label{figure:rlogo}
-\end{figure}
-
-\hypertarget{another-section}{%
-\subsection{Another section}\label{another-section}}
-
-There will likely be several sections, perhaps including code snippets,
-such as:
+We see this has information about the multiple authors returned, along
+with names, variations on those names, number of documents, and
+affiliations. We can then extract the author ID we want from this
+\texttt{data.frame}. This process is wrapped in the
+\texttt{get\_author\_info}:
 
 \begin{Schunk}
 \begin{Sinput}
-x <- 1:10
-x
+auth_info_df = get_author_info(last_name = last_name, 
+                              first_name = first_name)
+head(auth_info_df)
 \end{Sinput}
 \begin{Soutput}
-#>  [1]  1  2  3  4  5  6  7  8  9 10
+             auth_name       au_id          affil_id
+1       Catharine West 35480328200          60003771
+2      Malcolm J. West 35419377800          60019870
+3    Marie Diener-West  7003392768          60006183
+4       Robert M. West  7402395730          60012070
+5 Michael Abigail West  7402068812 60012018 60023691
+6        David M. West  7401998578          60008221
+                                       affil_name
+1                        University of Manchester
+2                James Cook University, Australia
+3 Johns Hopkins Bloomberg School of Public Health
+4                             University of Leeds
+5         University of Pittsburgh Medical Center
+6                               Massey University
 \end{Soutput}
 \end{Schunk}
 
-\hypertarget{summary}{%
-\subsection{Summary}\label{summary}}
+but we should note this information is condensed and a subset that is
+available from \texttt{get\_complete\_author\_info}.
 
-This file is only a basic article template. For full details of
-\emph{The R Journal} style and information on how to prepare your
-article for submission, see the
-\href{https://journal.r-project.org/share/author-guide.pdf}{Instructions
-for Authors}.
+If we now have an affiliation ID, such as \texttt{60006183} for the
+Johns Hopkins Bloomberg School of Public Health, we can pass this to
+\texttt{get\_author\_info} or \texttt{process\_author\_name}:
 
-\bibliography{RJreferences}
+\begin{Schunk}
+\begin{Sinput}
+spec_affil = get_author_info(
+  last_name = last_name, 
+  first_name = first_name,
+  affil_id = 60006183)
+spec_affil
+\end{Sinput}
+\begin{Soutput}
+          auth_name      au_id affil_id
+1 Marie Diener-West 7003392768 60006183
+                                       affil_name
+1 Johns Hopkins Bloomberg School of Public Health
+\end{Soutput}
+\end{Schunk}
+
+\hypertarget{retrieving-summary-information-about-an-author}{%
+\subsubsection{Retrieving summary information about an
+author}\label{retrieving-summary-information-about-an-author}}
+
+The \texttt{author\_retrieval} function can gather summary information
+about an author using the author identifier or name.
+
+\begin{Schunk}
+\begin{Sinput}
+author_info = author_retrieval(last_name = "Muschelli", first_name = "J")
+\end{Sinput}
+\begin{Soutput}
+       auth_name       au_id affil_id
+1 John Muschelli 40462056100 60006183
+                                       affil_name
+1 Johns Hopkins Bloomberg School of Public Health
+\end{Soutput}
+\begin{Sinput}
+names(author_info$content)
+\end{Sinput}
+\begin{Soutput}
+[1] "author-retrieval-response"
+\end{Soutput}
+\begin{Sinput}
+class(author_info$content$`author-retrieval-response`)
+\end{Sinput}
+\begin{Soutput}
+[1] "list"
+\end{Soutput}
+\end{Schunk}
+
+We can use \texttt{gen\_entries\_to\_df} to convert this response into a
+\texttt{data.frame}
+
+\begin{Schunk}
+\begin{Sinput}
+gen_entries_to_df(author_info$content$`author-retrieval-response`)$df
+\end{Sinput}
+\begin{Soutput}
+  @status @_fa
+1   found true
+                                            coredata.prism:url
+1 http://api.elsevier.com/content/author/author_id/40462056100
+  coredata.dc:identifier       coredata.eid      coredata.orcid
+1  AUTHOR_ID:40462056100 9-s2.0-40462056100 0000-0001-6469-1750
+  coredata.document-count coredata.cited-by-count coredata.citation-count
+1                      36                     671                     788
+                                                                             coredata.link.@href
+1 https://www.scopus.com/authid/detail.uri?partnerID=HzOxMe3b&authorId=40462056100&origin=inward
+  coredata.link.@rel coredata.link.@_fa preferred-name.surname
+1      scopus-author               true              Muschelli
+  preferred-name.given-name preferred-name.initials
+1                      John                      J.
+             affiliation-current.affiliation-name
+1 Johns Hopkins Bloomberg School of Public Health
+  affiliation-current.affiliation-city
+1                            Baltimore
+  affiliation-current.affiliation-country publication-range.start
+1                           United States                    2011
+  publication-range.end entry_number
+1                  2018            1
+\end{Soutput}
+\end{Schunk}
+
+but this list typically only has one element, and may be easily
+referenced using \texttt{\$} as a list.
+
+\hypertarget{retrieving-information-about-multiple-authors}{%
+\subsubsection{Retrieving information about multiple
+authors}\label{retrieving-information-about-multiple-authors}}
+
+In order to get information from multiple authors, one could loop over
+author information, but this is inefficient for code and API calls. The
+\texttt{complete\_multi\_author\_info} function can perform this
+operation. One caveat is that it requires author identifiers and not
+names. We can take the author IDs from \texttt{auth\_info\_df} to
+retrieve information for all these authors:
+
+\begin{Schunk}
+\begin{Sinput}
+all_author_info = complete_multi_author_info(au_id = auth_info_df$au_id)
+names(all_author_info)
+\end{Sinput}
+\begin{Soutput}
+[1] "get_statement" "content"       "au_id"        
+\end{Soutput}
+\end{Schunk}
+
+This result is again a low-level output from the API. We can use the
+\texttt{process\_complete\_multi\_author\_info} function to process this
+into a more amenable solution:
+
+\begin{Schunk}
+\begin{Sinput}
+processed = process_complete_multi_author_info(all_author_info)
+head(names(processed))
+\end{Sinput}
+\begin{Soutput}
+[1] "35480328200" "35419377800" "7003392768"  "7402395730"  "7402068812" 
+[6] "7401998578" 
+\end{Soutput}
+\end{Schunk}
+
+Now, each element is the author ID, which contains a list of
+\texttt{data.frame}s. The \texttt{multi\_author\_info} will perform both
+of these operations together. This result is still not ``tidy'' in many
+respects, but parts can be combined using \texttt{dplyr} or
+\texttt{purrr}:
+
+\begin{Schunk}
+\begin{Sinput}
+journals = purrr:::map_df(processed, function(x) {
+  x$journals
+  }, .id = "au_id")
+head(journals)
+\end{Sinput}
+\begin{Soutput}
+        au_id type                                        sourcetitle
+1 35480328200    j                                     Cancer Letters
+2 35480328200    j   Journal of Cancer Research and Clinical Oncology
+3 35480328200    j                              Nature Reviews Cancer
+4 35480328200    j Annals of the Royal College of Surgeons of England
+5 35480328200    j                                     Cancer Letters
+6 35480328200    j                         PLoS Computational Biology
+           sourcetitle-abbrev     issn
+1                Cancer Lett. 03043835
+2 J. Cancer Res. Clin. Oncol. 01715216
+3            Nat. Rev. Cancer 1474175X
+4   Ann. R. Coll. Surg. Engl. 00358843
+5                Cancer Lett. 18727980
+6          PLoS Comput. Biol. 1553734X
+\end{Soutput}
+\end{Schunk}
+
+\hypertarget{citations-over-time}{%
+\subsubsection{Citations over time}\label{citations-over-time}}
+
+Some APIs from Elsevier are disabled by default (see
+\url{https://dev.elsevier.com/api_key_settings.html}). Notably, the
+Citations Overview API is disabled, which allows users to access
+information about citations over time for articles of authors. This
+information is particularly useful for creating bibliometric indices,
+such as the \emph{h}-index (CITE). The \texttt{rscopus} package
+interfaces with these APIs, but the API must be enabled for that
+specific API key. On the Scopus website one can searching for authors,
+select up to 15 authors, and then create a ``Citation Overview'', which
+will give this citation information, which is in a CSV format. The
+\texttt{rscopus} package provides a \texttt{read\_cto} function to read
+in this data.
+
+We also provide an example export from a single author:
+
+\begin{Schunk}
+\begin{Sinput}
+file = system.file("extdata", "CTOExport.csv", package = "rscopus")
+citations_over_time = rscopus::read_cto(file)
+names(citations_over_time)
+\end{Sinput}
+\begin{Soutput}
+[1] "data"               "year_columns"       "author_information"
+\end{Soutput}
+\end{Schunk}
+
+The real information is in the \texttt{data} element of this list.\\
+Here we present \texttt{short\_title}, first 3 (relevant) words of the
+title, instead of the full document title for viewing purposes as titles
+can be quite long.
+
+\begin{Schunk}
+\begin{Sinput}
+yr_cols = citations_over_time$year_columns
+citations_over_time = citations_over_time$data
+citations_over_time = citations_over_time %>% 
+  mutate(short_title = unique_title(`Document Title`))
+head(citations_over_time[, c("short_title", yr_cols[1:5])])
+\end{Sinput}
+\begin{Soutput}
+                            short_title <2008 2008 2009 2010 2011
+1         Objective Evaluation Multiple     0    0    0    0    0
+2              MIMoSA: Automated Method     0    0    0    0    0
+3           Radiomic subtyping improves     0    0    0    0    0
+4      Feasibility Coping Effectiveness     0    0    0    0    0
+5     Freesurfer: Connecting Freesurfer     0    0    0    0    0
+6 Thrombolytic removal intraventricular     0    0    0    0    0
+\end{Soutput}
+\end{Schunk}
+
+In the citation overview, you must specify a range of years on Scopus,
+with a maximum of 15 years. As many times this wide format is not what
+you want to plot, a helper function \texttt{read\_cto\_long} will read
+the data in long format, done by \pkg{tidyr} (CTIE). Here we use
+\pkg{dplyr} to arrange the data by maximum number of citations:
+
+\begin{Schunk}
+\begin{Sinput}
+library(dplyr)
+long_cite = rscopus::read_cto_long(file)
+long_cite = long_cite$data %>% 
+  group_by(`Document Title`, year) %>% 
+  summarize(citations = sum(citations), 
+            `Publication Year` = unique(`Publication Year`)) %>% 
+  mutate(short_title = unique_title(`Document Title`))
+long_cite = long_cite %>% arrange(-citations, year, short_title)
+head(long_cite[, c("short_title", "year", "citations")])
+\end{Sinput}
+\begin{Soutput}
+# A tibble: 6 x 3
+  short_title                           year  citations
+  <chr>                                 <fct>     <int>
+1 Minimally invasive surgery            2015         36
+2 Minimally invasive surgery            2017         35
+3 ISLES 2015 public                     2018         28
+4 Large-scale radiomic profiling        2018         26
+5 Thrombolytic removal intraventricular 2018         25
+6 Minimally invasive surgery            2016         24
+\end{Soutput}
+\end{Schunk}
+
+Thus, we have one record per year and article. Here we will plot the
+cumulative citations per each paper over the years of publication and
+label the top 3 cited papers:
+
+\begin{Schunk}
+\begin{Sinput}
+# get cumulative sum
+csum = long_cite %>% 
+  mutate(citations = ifelse(is.na(citations), 0, citations)) %>% 
+  arrange(`Document Title`, year) %>% 
+  group_by(`Document Title`) %>% 
+  mutate(citations = cumsum(citations))
+# remove past and future with as.integer
+csum = csum %>% 
+  mutate(year = as.integer(as.character(year))) %>% 
+  filter(!is.na(year)) %>% 
+  filter(year >= `Publication Year`)
+# grab last citations and top 3 papers
+last_year = csum %>% 
+  arrange(`Document Title`, year) %>% 
+  group_by(`Document Title`) %>% 
+  slice(n()) %>% 
+  ungroup %>% arrange(-citations) %>% 
+  head(3) 
+g = ggplot(csum, 
+           aes(x = year, y = citations, color = short_title  )) +
+  xlim(c(2010, 2018)) + geom_line() + 
+  # label the titles numbers for top 3
+  geom_text(data = last_year, size = 3, aes(label = short_title), 
+            nudge_x = -1, nudge_y = 5)
+# don't want label for document title
+g + guides(color = FALSE) + theme(text = element_text(size = 20))
+\end{Sinput}
+
+\includegraphics{index_files/figure-latex/unnamed-chunk-19-1} \end{Schunk}
+
+\hypertarget{retrieving-affiliation-information}{%
+\subsubsection{Retrieving Affiliation
+Information}\label{retrieving-affiliation-information}}
+
+In order to get information about an affiliation, the
+\texttt{get\_affiliation\_info} can be used. Here we will look for the
+pattern \texttt{Johns\ Hopkins}:
+
+\begin{Schunk}
+\begin{Sinput}
+jhu_info = get_affiliation_info(affil_name = "Johns Hopkins")
+head(jhu_info[, c("affil_id", "affil_name")])
+\end{Sinput}
+\begin{Soutput}
+  affil_id                                              affil_name
+1 60005248                                Johns Hopkins University
+2 60001117                    The Johns Hopkins School of Medicine
+3 60006183         Johns Hopkins Bloomberg School of Public Health
+4 60001555                                  Johns Hopkins Hospital
+5 60003443                      Johns Hopkins Medical Institutions
+6 60022054 The Johns Hopkins University Applied Physics Laboratory
+\end{Soutput}
+\end{Schunk}
+
+This function implicitly calls \texttt{affil\_search}, which searches
+the affiliation information from Scopus. Additional information can be
+extracted using \texttt{affil\_search}, but this typically includes a
+large number of records as it searches all the documents. This
+affiliation ID can be used to be more specific when searching authors or
+documents.
+
+\begin{Schunk}
+\begin{Sinput}
+eid_info = rscopus::article_retrieval(id = jm$df$eid[1], 
+                                      identifier = "eid")
+scopus_id = jm$df$`dc:identifier`[1]
+scopus_id = sub("SCOPUS_ID:", "", scopus_id)
+sc_info = rscopus::article_retrieval(id = scopus_id, identifier = "scopus_id")
+doi_info = rscopus::article_retrieval(id = jm$df$`prism:doi`[1], identifier = "doi")
+em_ret = embase_retrieval(id = jm$df$`prism:doi`[1], identifier = "doi")
+em_content = em_ret$content$`abstracts-retrieval-response`
+df = gen_entries_to_df(em_content)
+res = generic_elsevier_api()
+\end{Sinput}
+\end{Schunk}
+
+In some cases, one may have an article in mind and would like
+information about the authors of that paper. In order to get the author
+IDs from the paper identifier, one can use the
+\texttt{abstract\_retrieval} function:
+
+\begin{Schunk}
+\begin{Sinput}
+sc_id = sub("SCOPUS_ID:", "", jm$df$`dc:identifier`[1])
+res = abstract_retrieval(id = sc_id, identifier = "scopus_id")
+sc_info = res$content$`abstracts-retrieval-response`
+sc_df = purrr::map_df(
+  sc_info$authors[[1]],
+  as.data.frame, 
+  stringsAsFactors = FALSE,
+  make.names = FALSE)
+head(sc_df[, c("ce.given.name", "ce.initials", "X.auid")])
+\end{Sinput}
+\begin{Soutput}
+  ce.given.name ce.initials      X.auid
+1       Olivier          O.  8431704700
+2        Audrey          A. 57203861434
+3       Michaël          M. 57199507814
+4      Baptiste          B. 57197801981
+5       Florent          F. 57203867656
+6       Mathieu          M. 57203864793
+\end{Soutput}
+\end{Schunk}
+
+This information is located within the \texttt{author}
+\texttt{data.frame} from the \texttt{full\_data} as well. As we took the
+first entry from the Scopus identifier, we will subset the author data
+by \texttt{entry\_number} \texttt{1} from the \texttt{author}
+\texttt{data.frame}:
+
+\begin{Schunk}
+\begin{Sinput}
+paper_author_info = jm$full_data$author
+head(paper_author_info[paper_author_info$entry_number == 1,])
+\end{Sinput}
+\begin{Soutput}
+  @_fa @seq                                                    author-url
+1 true    1  https://api.elsevier.com/content/author/author_id/8431704700
+2 true    2 https://api.elsevier.com/content/author/author_id/57203861434
+3 true    3 https://api.elsevier.com/content/author/author_id/57199507814
+4 true    4 https://api.elsevier.com/content/author/author_id/57197801981
+5 true    5 https://api.elsevier.com/content/author/author_id/57203867656
+6 true    6 https://api.elsevier.com/content/author/author_id/57203864793
+       authid     authname   surname given-name initials afid.@_fa
+1  8431704700 Commowick O. Commowick    Olivier       O.      true
+2 57203861434    Istace A.    Istace     Audrey       A.      true
+3 57199507814      Kain M.      Kain    Michaël       M.      true
+4 57197801981   Laurent B.   Laurent   Baptiste       B.      true
+5 57203867656     Leray F.     Leray    Florent       F.      true
+6 57203864793     Simon M.     Simon    Mathieu       M.      true
+    afid.$ entry_number
+1 60030553            1
+2 60001780            1
+3 60030553            1
+4 60105610            1
+5 60030553            1
+6 60030553            1
+\end{Soutput}
+\end{Schunk}
+
+Thus, if we retrieve a single author's information, we can gather other
+author IDs from this directly. If we have a specific paper, we can
+retrieve author IDs from that paper information as well.
 
 
 \address{%
