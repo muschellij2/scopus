@@ -52,7 +52,7 @@ names(jm$full_data)
 head(jm$full_data$author[, c("authid", "authname", "surname", "afid.$", "entry_number")])
 
 ## ------------------------------------------------------------------------
-head(jm$full_data$affiliation[, c("afid", "affilname", "affiliation-country", "entry_number")])
+head(jm$full_data$affiliation[, c("afid", "affiliation-country", "entry_number",  "affilname")])
 
 ## ----retrieval-----------------------------------------------------------
 author_info = author_retrieval(last_name = "Muschelli", first_name = "J")
@@ -70,7 +70,7 @@ h_data = jm$df %>%
   mutate(n_papers = 1:n())
 head(h_data[, c("short_title", "citations", "n_papers")])
 h_index = max(which(h_data$citations >= h_data$n_papers))
-h_index
+cat(paste0("Calculated h-index is ", h_index))
 
 ## ---- fig.width=6, fig.height=4, fig.cap = paste0("Calculating an h-index.  Here we plot the number of papers versus the number of citations for that paper.  This plot is the basis for the h-index.  The X=Y line is displayed in black and the red line is where the curve passes the X=Y line, which is the h-index, a value of ", h_index, ".")----
 library(ggplot2)
@@ -82,7 +82,7 @@ h_data %>%
 ## ------------------------------------------------------------------------
 h_data = h_data %>% mutate(sum_citations = cumsum(citations))
 g_index = max(which(h_data$sum_citations >= h_data$n_papers^2))
-g_index
+cat(paste0("Calculated g-index is ", g_index))
 
 ## ----ssmith_info2--------------------------------------------------------
 last_name = "West"

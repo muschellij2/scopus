@@ -9,8 +9,8 @@ author:
     email: jmuschel@jhsph.edu
     url: http://johnmuschelli.com  
 abstract: >
-    We demonstrate how to download author and affiliation using the `rscopus` package, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to calculate the number of citations from an author, as well as calculating citation metrics with the output.
-bibliography: RJreferences.bib
+    We demonstrate how to download author and affiliation using the `rscopus` package, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to obtain the number of citations from an author and use that to  calculate citation metrics with the output.  We additionally show how to download additional information from an article such as the figures and supplemental material.
+bibliography: index.bib
 output:
   rticles::rjournal_article:
     includes:
@@ -32,17 +32,17 @@ library(rscopus)
 
 Elsevier provides a number of APIs (application program interfaces) to extract information about science and research (https://dev.elsevier.com/).  This information is can provide insights into how research is done and provide the data to perform experiments and analyses of metascience.  In many cases, we would like to gather information about publications, authors, and institutions with respect to published research.  Elsevier's Scopus a repository of information about scientific articles and books, which includes information about authors, citations, and abstracts.  Scopus claims to have the largest database of this information (https://www.elsevier.com/solutions/scopus).  Therefore, providing users an interface to this repository should be worthwhile.
 
-One common task for researchers is to keep his or her curriculum vitae (CV) up to date.  That requires having accurate information on the papers published and under submission.  Keeping track of these papers can be tedious and solutions could exist if one could retrieve papers automatically.  One concern is missing certain crucial papers in your CV.  Although \pkg{rscopus} does not provide these tools specifically, it can be used to consistently cross-reference information about publications with a CV.  
+One common task for researchers is to keep his or her curriculum vitae (CV) up to date.  That requires having accurate information on the papers published and under submission.  Keeping track of these papers can be tedious and solutions could exist if one could retrieve papers automatically.  One concern is missing certain crucial papers in your CV.  Although \CRANpkg{rscopus} does not provide these tools specifically, it can be used to consistently cross-reference information about publications with a CV.  
 
 Additionally on CVs, one may present information of the impact of a paper.  This can be done by highlighting certain pieces of information, such is done in NIH biosketches, or ranking papers based on some metric.  As promotions and grant review may be affected by highlighting impact, these metrics can have real-life implications. One metric commonly used is the number of citations.  Also, information about the journal impact factor may be taken into account.  We do not imply that these are particularly good metrics or metrics that reflect true impact, but are simply those that we have seen used in practice.  
 <!-- In order to get these metrics, we must interface of database with this information and will use Scopus. -->
 
-The \pkg{rscopus} package allows you to interface with Scopus APIs and gather information about authors, affiliations, articles, and abstracts.  Currently in `R`, packages exist for bibliometric analysis, but commonly require the data to be downloaded from a website or online interface.  For example, the \pkg{bibliometrix} \citep{bibliometrix} package provides a level of integration that is useful for using multiple packages that deal with bibliometric data, incorporating functionality from \pkg{rscopus}.  The \pkg{bibliometrix} package also enables users to analyze data from ISI Web of Knowledge (WoK) and PubMed.  
+The \pkg{rscopus} package allows you to interface with Scopus APIs and gather information about authors, affiliations, articles, and abstracts.  Currently in R, packages exist for bibliometric analysis, but commonly require the data to be downloaded from a website or online interface.  For example, the \CRANpkg{bibliometrix} \citep{bibliometrix} package provides a level of integration that is useful for using multiple packages that deal with bibliometric data, incorporating functionality from \CRANpkg{rscopus}.  The \pkg{bibliometrix} package also enables users to analyze data from ISI Web of Knowledge (WoK) and PubMed.  
 
-Web of Knowledge is one competitor to Scopus, but \pkg{bibliometrix} does not have an interface to the WoK API; therefore data must be manually exported from the site into `R`.   Additional access to the web of Science API would be useful and has been implemented in a GitHub package \pkg{rwos} (https://github.com/juba/rwos), but is not on CRAN and has not been updated recently (over 1 year).  We have also created an interface with the Web of Science APIs (https://github.com/muschellij2/webofscience), but have not been given access to the APIs to test them as it is still in beta.
+Web of Knowledge is one competitor to Scopus, but \pkg{bibliometrix} does not have an interface to the WoK API; therefore data must be manually exported from the site into R.   Additional access to the web of Science API would be useful and has been implemented in a GitHub package \pkg{rwos} (https://github.com/juba/rwos), but is not on CRAN and has not been updated recently (over 1 year).  We have also created an interface with the Web of Science APIs (https://github.com/muschellij2/webofscience), but have not been given access to the APIs to test them as it is still in beta.
  
 
-As compared to Google Scholar, Scopus and WoK claim the information from these sources is more curated.  Other packages such as \pkg{scholar} \citep{scholar} and \pkg{gcite} \citep{gcite} can provide interfaces to the Google Scholar citation information.  Using these in combination with \pkg{rscopus} can more likely guarantee complete information.  Also, comparing these different repositories can demonstrate biases or differences in the number of citations across the different platforms.
+As compared to Google Scholar, Scopus and WoK claim the information from these sources is more curated.  Other packages such as \CRANpkg{scholar} \citep{scholar} and \CRANpkg{gcite} \citep{gcite} can provide interfaces to the Google Scholar citation information.  Using these in combination with \pkg{rscopus} can more likely guarantee complete information.  Also, comparing these different repositories can demonstrate biases or differences in the number of citations across the different platforms.
 
 Scopus has a number of APIs available (https://dev.elsevier.com/sc_apis.html).  Here we will present examples of how to use the \pkg{rscopus} package, including: searching for authors or affiliations, calculating citation indices for an author, retrieving abstract information on articles, and downloading artifacts from an article.  
 
@@ -153,7 +153,7 @@ head(jm$full_data$author[, c("authid", "authname", "surname", "afid.$", "entry_n
 The column `entry_number` indicates which element this information came in the `entry` list (retrieved from `httr::content`, which calls `jsonlite:fromJSON`).  This column should merge with the `data.frame` of citations, as well as the information about author affiliations, which is located in the `affiliation` `data.frame` from `full_data`:
 
 ```{r}
-head(jm$full_data$affiliation[, c("afid", "affilname", "affiliation-country", "entry_number")])
+head(jm$full_data$affiliation[, c("afid", "affiliation-country", "entry_number",  "affilname")])
 ```
 
 This information is rich for understanding information about an author's publication record, how many citations are recorded for a specific article, which journals have been published in, and who has co-authored publications with an author.  For example, one could determine how many international collaborators an author had on papers. 
@@ -178,7 +178,7 @@ but this list from `author_retrieval` typically only has one element, and may be
 
 ## Calculating author indices
 
-With the data from the `author_data` output (`jm$df`), we can calculate citation indices.  Here we calculate the overall *h*-index \citep{hirsch2005index}.  We will use \pkg{dplyr} \citep{dplyr} for data manipulation:
+With the data from the `author_data` output (`jm$df`), we can calculate citation indices.  Here we calculate the overall *h*-index \citep{hirsch2005index}.  We will use \CRANpkg{dplyr} \citep{dplyr} for data manipulation:
 
 ```{r}
 library(dplyr)
@@ -188,10 +188,10 @@ h_data = jm$df %>%
   mutate(n_papers = 1:n())
 head(h_data[, c("short_title", "citations", "n_papers")])
 h_index = max(which(h_data$citations >= h_data$n_papers))
-h_index
+cat(paste0("Calculated h-index is ", h_index))
 ```
 
-Using \pkg{ggplot2} \citep{ggplot2}, we can also visually show the *h*-index computation, where we plot the number of citations versus the number of papers (cumulatively) along with the X-Y line:
+Using \CRANpkg{ggplot2} \citep{ggplot2}, we can also visually show the *h*-index computation, where we plot the number of citations versus the number of papers (cumulatively) along with the X-Y line:
 
 ```{r, fig.width=6, fig.height=4, fig.cap = paste0("Calculating an h-index.  Here we plot the number of papers versus the number of citations for that paper.  This plot is the basis for the h-index.  The X=Y line is displayed in black and the red line is where the curve passes the X=Y line, which is the h-index, a value of ", h_index, ".")}
 library(ggplot2)
@@ -206,7 +206,7 @@ Additional indices can be created from the data, such as the *g*-index \citep{eg
 ```{r}
 h_data = h_data %>% mutate(sum_citations = cumsum(citations))
 g_index = max(which(h_data$sum_citations >= h_data$n_papers^2))
-g_index
+cat(paste0("Calculated g-index is ", g_index))
 ```
 
 Overall, metrics based on citations and the year of publication can be calculated, but longitudinal information is lacking.  We will discuss citation information over time in Section \ref{sec:citetime}.
@@ -223,7 +223,7 @@ class(auth_info_list)
 names(auth_info_list)
 ```
 
-We see here, which is common in in some low-level functions returned from the `rscopus` API, the output is a list with elements `get_statement`, which returns an object of class `response` (from the \pkg{httr} package \citep{httr}), and `content`, which is the content from the response.  Most times, the `content` is of interest, but failed requrests may be explored with the `get_statement` output for debuggin.  
+We see here, which is common in in some low-level functions returned from the `rscopus` API, the output is a list with elements `get_statement`, which returns an object of class `response` (from the \CRANpkg{httr} package \citep{httr}), and `content`, which is the content from the response.  Most times, the `content` is of interest, but failed requrests may be explored with the `get_statement` output for debuggin.  
 
 Again, we can use `gen_entries_to_df` convert that output into a `data.frame`, which is more manageable:
 
@@ -271,7 +271,7 @@ processed = process_complete_multi_author_info(all_author_info)
 head(names(processed))
 ```
 
-Now, each element is the author ID, which contains a list of `data.frame`s.  The `multi_author_info` will perform both of these operations together.  This result is still not "tidy" \citep{wickham2014tidy} in many respects, but parts can be combined using \pkg{purrr} \citep{purrr}:
+Now, each element is the author ID, which contains a list of `data.frame`s.  The `multi_author_info` will perform both of these operations together.  This result is still not "tidy" \citep{wickham2014tidy} in many respects, but parts can be combined using \CRANpkg{purrr} \citep{purrr}:
 
 ```{r}
 journals = purrr:::map_df(processed, `$`, "journals", .id = "au_id")
@@ -303,7 +303,7 @@ citations_over_time = citations_over_time %>%
 head(citations_over_time[, c("short_title", yr_cols[1:5])])
 ```
 
-In the citation overview, you must specify a range of years on Scopus, with a maximum of 15 years.  As many times this wide format is not what you want to plot, or in a "tidy" format, the \pkg{rscopus} helper function `read_cto_long` will read the data in long format, done by \pkg{tidyr} \citep{tidyr}.   Here we use \pkg{dplyr} to arrange the data by maximum number of citations per year:
+In the citation overview, you must specify a range of years on Scopus, with a maximum of 15 years.  As many times this wide format is not what you want to plot, or in a "tidy" format, the \pkg{rscopus} helper function `read_cto_long` will read the data in long format, done by \CRANpkg{tidyr} \citep{tidyr}.   Here we use \pkg{dplyr} to arrange the data by maximum number of citations per year:
 
 ```{r}
 long_cite = rscopus::read_cto_long(file)
@@ -434,13 +434,13 @@ using_doi = abstract_retrieval(id = "10.1016/j.neuroimage.2015.03.074", identifi
 
 # Conclusion
 
-The \pkg{rscopus} package provides an interface to the Scopus API through `R`.  The package allows users to retrieve information about authors, individual articles, or institutions from the API.  The information that can be obtained is limited by the scopes enabled by the API key through Elsevier and the associated organization.  We have shown how to obtain an API key and specific use cases, which we believe covers the a number of the needs of the users.  
+The \pkg{rscopus} package provides an interface to the Scopus API through R.  The package allows users to retrieve information about authors, individual articles, or institutions from the API.  The information that can be obtained is limited by the scopes enabled by the API key through Elsevier and the associated organization.  We have shown how to obtain an API key and specific use cases, which we believe covers the a number of the needs of the users.  
 
-More advanced usage requires additional information about the Scopus API and its querying specifications.  The future direction of this package is to create helper functions to construct queries for more targeted views of the data.  Additional APIs from Elsevier have functions for access, such as SciDirect with the `rscopus::sciencedirect_search` function, but the main focus of the package has been Scopus.  Although the goal is to keep all functionality up to date with the number of APIs, the main focus will be consistency and stability with respect to Scopus.  All the code and figures used to create this paper are located at https://github.com/muschellij2/scopus.  
+More advanced usage requires additional information about the Scopus API and its querying specifications.  The future direction of this package is to create helper functions to construct queries for more targeted views of the data.  Additional APIs from Elsevier have functions for access, such as SciDirect with the `rscopus::sciencedirect_search` function, but the main focus of the package has been Scopus.  Although the goal is to keep all functionality up to date with the number of APIs, the main focus will be consistency and stability with respect to Scopus.  All the code and figures used to create this paper are located at https://github.com/muschellij2/scopus and the paper was created using the \CRANpkg{rticles} package \citep{rticles}.  
 
 # Supplemental Material
 
-Here is the simple parser `unique_title` to find the first 3 relevant words of the title after removing non-relevant words froma list in the \pkg{stopwords} package \citep{stopwords}:
+Here is the simple parser `unique_title` to find the first 3 relevant words of the title after removing non-relevant words froma list in the \CRANpkg{stopwords} package \citep{stopwords}:
 
 ```{r, echo = TRUE}
 unique_title = function(x) {

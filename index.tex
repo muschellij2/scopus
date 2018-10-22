@@ -8,9 +8,11 @@
 We demonstrate how to download author and affiliation using the
 \texttt{rscopus} package, interacing with the Elsevier Scopus API. We
 demonstrate how to manipulate the output from the API into organized
-data that can be analyzed. We present options on how to calculate the
-number of citations from an author, as well as calculating citation
-metrics with the output.
+data that can be analyzed. We present options on how to obtain the
+number of citations from an author and use that to calculate citation
+metrics with the output. We additionally show how to download additional
+information from an article such as the figures and supplemental
+material.
 }
 
 % Any extra LaTeX you need in the preamble
@@ -36,9 +38,9 @@ One common task for researchers is to keep his or her curriculum vitae
 published and under submission. Keeping track of these papers can be
 tedious and solutions could exist if one could retrieve papers
 automatically. One concern is missing certain crucial papers in your CV.
-Although \pkg{rscopus} does not provide these tools specifically, it can
-be used to consistently cross-reference information about publications
-with a CV.
+Although \CRANpkg{rscopus} does not provide these tools specifically, it
+can be used to consistently cross-reference information about
+publications with a CV.
 
 Additionally on CVs, one may present information of the impact of a
 paper. This can be done by highlighting certain pieces of information,
@@ -52,30 +54,29 @@ simply those that we have seen used in practice.\\
 
 The \pkg{rscopus} package allows you to interface with Scopus APIs and
 gather information about authors, affiliations, articles, and abstracts.
-Currently in \texttt{R}, packages exist for bibliometric analysis, but
-commonly require the data to be downloaded from a website or online
-interface. For example, the \pkg{bibliometrix} \citep{bibliometrix}
-package provides a level of integration that is useful for using
-multiple packages that deal with bibliometric data, incorporating
-functionality from \pkg{rscopus}. The \pkg{bibliometrix} package also
-enables users to analyze data from ISI Web of Knowledge (WoK) and
-PubMed.
+Currently in R, packages exist for bibliometric analysis, but commonly
+require the data to be downloaded from a website or online interface.
+For example, the \CRANpkg{bibliometrix} \citep{bibliometrix} package
+provides a level of integration that is useful for using multiple
+packages that deal with bibliometric data, incorporating functionality
+from \CRANpkg{rscopus}. The \pkg{bibliometrix} package also enables
+users to analyze data from ISI Web of Knowledge (WoK) and PubMed.
 
 Web of Knowledge is one competitor to Scopus, but \pkg{bibliometrix}
 does not have an interface to the WoK API; therefore data must be
-manually exported from the site into \texttt{R}. Additional access to
-the web of Science API would be useful and has been implemented in a
-GitHub package \pkg{rwos} (\url{https://github.com/juba/rwos}), but is
-not on CRAN and has not been updated recently (over 1 year). We have
-also created an interface with the Web of Science APIs
+manually exported from the site into R. Additional access to the web of
+Science API would be useful and has been implemented in a GitHub package
+\pkg{rwos} (\url{https://github.com/juba/rwos}), but is not on CRAN and
+has not been updated recently (over 1 year). We have also created an
+interface with the Web of Science APIs
 (\url{https://github.com/muschellij2/webofscience}), but have not been
 given access to the APIs to test them as it is still in beta.
 
 As compared to Google Scholar, Scopus and WoK claim the information from
-these sources is more curated. Other packages such as \pkg{scholar}
-\citep{scholar} and \pkg{gcite} \citep{gcite} can provide interfaces to
-the Google Scholar citation information. Using these in combination with
-\pkg{rscopus} can more likely guarantee complete information. Also,
+these sources is more curated. Other packages such as \CRANpkg{scholar}
+\citep{scholar} and \CRANpkg{gcite} \citep{gcite} can provide interfaces
+to the Google Scholar citation information. Using these in combination
+with \pkg{rscopus} can more likely guarantee complete information. Also,
 comparing these different repositories can demonstrate biases or
 differences in the number of citations across the different platforms.
 
@@ -329,16 +330,16 @@ as the information about author affiliations, which is located in the
 
 \begin{Schunk}
 \begin{Sinput}
-head(jm$full_data$affiliation[, c("afid", "affilname", "affiliation-country", "entry_number")])
+head(jm$full_data$affiliation[, c("afid", "affiliation-country", "entry_number",  "affilname")])
 \end{Sinput}
 \begin{Soutput}
-      afid
-1 60030553
-2 60001780
-3 60105610
-4 60062760
-5 60028893
-6 60028893
+      afid affiliation-country entry_number
+1 60030553              France            1
+2 60001780              France            1
+3 60105610              France            1
+4 60062760              France            1
+5 60028893              France            1
+6 60028893              France            1
                                                                 affilname
 1                                                  Universite de Rennes 1
 2                                             Centre Hospitalier Lyon-Sud
@@ -346,13 +347,6 @@ head(jm$full_data$affiliation[, c("afid", "affilname", "affiliation-country", "e
 4 Centre de Recherche en Acquisition et Traitement d'Images pour la Sante
 5                              Centre Hospitalier Universitaire de Rennes
 6                              Centre Hospitalier Universitaire de Rennes
-  affiliation-country entry_number
-1              France            1
-2              France            1
-3              France            1
-4              France            1
-5              France            1
-6              France            1
 \end{Soutput}
 \end{Schunk}
 
@@ -443,7 +437,7 @@ indices}\label{calculating-author-indices}}
 
 With the data from the \texttt{author\_data} output (\texttt{jm\$df}),
 we can calculate citation indices. Here we calculate the overall
-\emph{h}-index \citep{hirsch2005index}. We will use \pkg{dplyr}
+\emph{h}-index \citep{hirsch2005index}. We will use \CRANpkg{dplyr}
 \citep{dplyr} for data manipulation:
 
 \begin{Schunk}
@@ -466,14 +460,14 @@ head(h_data[, c("short_title", "citations", "n_papers")])
 \end{Soutput}
 \begin{Sinput}
 h_index = max(which(h_data$citations >= h_data$n_papers))
-h_index
+cat(paste0("Calculated h-index is ", h_index))
 \end{Sinput}
 \begin{Soutput}
-[1] 15
+Calculated h-index is 15
 \end{Soutput}
 \end{Schunk}
 
-Using \pkg{ggplot2} \citep{ggplot2}, we can also visually show the
+Using \CRANpkg{ggplot2} \citep{ggplot2}, we can also visually show the
 \emph{h}-index computation, where we plot the number of citations versus
 the number of papers (cumulatively) along with the X-Y line:
 
@@ -497,10 +491,10 @@ Additional indices can be created from the data, such as the
 \begin{Sinput}
 h_data = h_data %>% mutate(sum_citations = cumsum(citations))
 g_index = max(which(h_data$sum_citations >= h_data$n_papers^2))
-g_index
+cat(paste0("Calculated g-index is ", g_index))
 \end{Sinput}
 \begin{Soutput}
-[1] 28
+Calculated g-index is 28
 \end{Soutput}
 \end{Schunk}
 
@@ -541,7 +535,7 @@ names(auth_info_list)
 We see here, which is common in in some low-level functions returned
 from the \texttt{rscopus} API, the output is a list with elements
 \texttt{get\_statement}, which returns an object of class
-\texttt{response} (from the \pkg{httr} package \citep{httr}), and
+\texttt{response} (from the \CRANpkg{httr} package \citep{httr}), and
 \texttt{content}, which is the content from the response. Most times,
 the \texttt{content} is of interest, but failed requrests may be
 explored with the \texttt{get\_statement} output for debuggin.
@@ -682,7 +676,7 @@ Now, each element is the author ID, which contains a list of
 \texttt{data.frame}s. The \texttt{multi\_author\_info} will perform both
 of these operations together. This result is still not ``tidy''
 \citep{wickham2014tidy} in many respects, but parts can be combined
-using \pkg{purrr} \citep{purrr}:
+using \CRANpkg{purrr} \citep{purrr}:
 
 \begin{Schunk}
 \begin{Sinput}
@@ -769,8 +763,8 @@ In the citation overview, you must specify a range of years on Scopus,
 with a maximum of 15 years. As many times this wide format is not what
 you want to plot, or in a ``tidy'' format, the \pkg{rscopus} helper
 function \texttt{read\_cto\_long} will read the data in long format,
-done by \pkg{tidyr} \citep{tidyr}. Here we use \pkg{dplyr} to arrange
-the data by maximum number of citations per year:
+done by \CRANpkg{tidyr} \citep{tidyr}. Here we use \pkg{dplyr} to
+arrange the data by maximum number of citations per year:
 
 \begin{Schunk}
 \begin{Sinput}
@@ -1004,7 +998,7 @@ object = download_object(obj_df$url[1])
 object$outfile
 \end{Sinput}
 \begin{Soutput}
-[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//RtmpsFyGXa/file170ca4ff8b77e.jpg"
+[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmpmk0HeO/file3f4565042fd.jpg"
 \end{Soutput}
 \end{Schunk}
 
@@ -1017,8 +1011,8 @@ passing in all the URLs from the output of \texttt{object\_retrieval}.
 \section{Conclusion}\label{conclusion}}
 
 The \pkg{rscopus} package provides an interface to the Scopus API
-through \texttt{R}. The package allows users to retrieve information
-about authors, individual articles, or institutions from the API. The
+through R. The package allows users to retrieve information about
+authors, individual articles, or institutions from the API. The
 information that can be obtained is limited by the scopes enabled by the
 API key through Elsevier and the associated organization. We have shown
 how to obtain an API key and specific use cases, which we believe covers
@@ -1033,14 +1027,15 @@ function, but the main focus of the package has been Scopus. Although
 the goal is to keep all functionality up to date with the number of
 APIs, the main focus will be consistency and stability with respect to
 Scopus. All the code and figures used to create this paper are located
-at \url{https://github.com/muschellij2/scopus}.
+at \url{https://github.com/muschellij2/scopus} and the paper was created
+using the \CRANpkg{rticles} package \citep{rticles}.
 
 \hypertarget{supplemental-material}{%
 \section{Supplemental Material}\label{supplemental-material}}
 
 Here is the simple parser \texttt{unique\_title} to find the first 3
 relevant words of the title after removing non-relevant words froma list
-in the \pkg{stopwords} package \citep{stopwords}:
+in the \CRANpkg{stopwords} package \citep{stopwords}:
 
 \begin{Schunk}
 \begin{Sinput}
@@ -1057,7 +1052,7 @@ unique_title = function(x) {
 \end{Sinput}
 \end{Schunk}
 
-\bibliography{RJreferences.bib}
+\bibliography{index.bib}
 
 \address{%
 John Muschelli\\
