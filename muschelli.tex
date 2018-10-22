@@ -1,5 +1,5 @@
 % !TeX root = RJwrapper.tex
-\title{Gathering Bibliometric Information using Scopus using rscopus}
+\title{Gathering Bibliometric Information from the Scopus API using rscopus}
 \author{by John Muschelli}
 
 \maketitle
@@ -15,7 +15,6 @@ information from an article such as the figures and supplemental
 material.
 }
 
-% Any extra LaTeX you need in the preamble
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -480,7 +479,7 @@ h_data %>%
   geom_hline(yintercept = h_index, color = "red")
 \end{Sinput}
 \begin{figure}
-\includegraphics{index_files/figure-latex/unnamed-chunk-13-1} \caption[Calculating an h-index]{Calculating an h-index.  Here we plot the number of papers versus the number of citations for that paper.  This plot is the basis for the h-index.  The X=Y line is displayed in black and the red line is where the curve passes the X=Y line, which is the h-index, a value of 15.}\label{fig:unnamed-chunk-13}
+\includegraphics{muschelli_files/figure-latex/unnamed-chunk-13-1} \caption[Calculating an h-index]{Calculating an h-index.  Here we plot the number of papers versus the number of citations for that paper.  This plot is the basis for the h-index.  The X=Y line is displayed in black and the red line is where the curve passes the X=Y line, which is the h-index, a value of 15.}\label{fig:unnamed-chunk-13}
 \end{figure}
 \end{Schunk}
 
@@ -825,7 +824,7 @@ g = ggplot(csum,
 g + guides(color = FALSE) + theme(text = element_text(size = 20))
 \end{Sinput}
 
-\includegraphics{index_files/figure-latex/unnamed-chunk-24-1} \end{Schunk}
+\includegraphics{muschelli_files/figure-latex/unnamed-chunk-24-1} \end{Schunk}
 
 Thus, we can present visually how the number of citations has changed
 and may be able to highlight which papers are gaining or waning in
@@ -998,7 +997,7 @@ object = download_object(obj_df$url[1])
 object$outfile
 \end{Sinput}
 \begin{Soutput}
-[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmpmk0HeO/file3f4565042fd.jpg"
+[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmpmfe411/file18415a23ca8a.jpg"
 \end{Soutput}
 \end{Schunk}
 
@@ -1052,7 +1051,7 @@ unique_title = function(x) {
 \end{Sinput}
 \end{Schunk}
 
-\bibliography{index.bib}
+\bibliography{muschelli.bib}
 
 \address{%
 John Muschelli\\

@@ -1,5 +1,5 @@
 ---
-title: Gathering Bibliometric Information using Scopus using rscopus
+title: Gathering Bibliometric Information from the Scopus API using rscopus
 author:
   - name: John Muschelli
     affiliation: Department of Biostatistics, Johns Hopkins Bloomberg School of Public Health
@@ -10,11 +10,9 @@ author:
     url: http://johnmuschelli.com  
 abstract: >
     We demonstrate how to download author and affiliation using the `rscopus` package, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to obtain the number of citations from an author and use that to  calculate citation metrics with the output.  We additionally show how to download additional information from an article such as the figures and supplemental material.
-bibliography: index.bib
+bibliography: muschelli.bib
 output:
-  rticles::rjournal_article:
-    includes:
-      in_header: preamble.tex
+  rticles::rjournal_article
 ---
 
 ```{r setup, include = FALSE}

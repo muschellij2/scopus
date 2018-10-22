@@ -1,13 +1,13 @@
-all: RJwrapper.pdf index.R motivation.pdf
+all: RJwrapper.pdf muschelli.R motivation.pdf
 
-RJwrapper.pdf: index.Rmd index.tex index.bib
-	- Rscript -e "rmarkdown::render(\"index.Rmd\")"
+RJwrapper.pdf: muschelli.Rmd muschelli.bib
+	- Rscript -e "rmarkdown::render(\"muschelli.Rmd\")"
 
-index.R: index.Rmd
-	- Rscript -e "knitr::purl(\"index.Rmd\")"		
+muschelli.R: muschelli.Rmd
+	- Rscript -e "knitr::purl(\"muschelli.Rmd\")"		
 
 motivation.pdf: motivation.Rmd
 	- Rscript -e "rmarkdown::render(\"motivation.Rmd\")"
 
 clean:
-	rm -f RJwrapper.pdf index.R
+	rm -f RJwrapper.pdf muschelli.R motivation.pdf
