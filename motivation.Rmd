@@ -1,0 +1,16 @@
+---
+title: "Add-on Package Motivation"
+author: "John Muschelli"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The `rscopus` package: Motivation
+
+Although the `rscopus` package does not implement any new data structures or architectures, it provides an interface to the Scopus APIs, which have a large collection of data for citations and publications.  The `scholar` package provides a similar package to Google Scholar, as well as my own `gcite` package.  These both are based on scraping web pages, which causes large breakages when the page changes as it's not a true API.  Moreover, the Scopus API should provide a more curated view of citations.
+
+The main motivation of the paper is to show users what pieces of information are available through the package, and therefore the API.  I believe many likely have access to the API through their institution, who likely have Elsevier accounts, but are unaware.  I believe displaying some ways to gather information about an author (namely themselves), it would encourage more people to use the package and the API.  
+
