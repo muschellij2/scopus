@@ -54,6 +54,17 @@ head(jm$full_data$author[, c("authid", "authname", "surname", "afid.$", "entry_n
 ## ------------------------------------------------------------------------
 head(jm$full_data$affiliation[, c("afid", "affiliation-country", "entry_number",  "affilname")])
 
+## ------------------------------------------------------------------------
+library(dplyr)
+au_id = unique(jm$df$au_id) 
+co_authors = jm$full_data$author %>% 
+  filter(!authid %in% au_id)
+co_authors = co_authors %>% 
+  add_count(authid) %>%
+  select(n, authid, authname, surname) %>% 
+  distinct() %>% arrange(-n)
+head(co_authors)
+
 ## ----retrieval-----------------------------------------------------------
 author_info = author_retrieval(last_name = "Muschelli", first_name = "J")
 names(author_info$content)
@@ -63,7 +74,6 @@ class(author_info$content$`author-retrieval-response`)
 gen_entries_to_df(author_info$content$`author-retrieval-response`)$df
 
 ## ------------------------------------------------------------------------
-library(dplyr)
 h_data = jm$df %>% 
   mutate(citations = as.numeric(`citedby-count`)) %>% 
   arrange(-citations) %>% 
@@ -118,8 +128,20 @@ processed = process_complete_multi_author_info(all_author_info)
 head(names(processed))
 
 ## ------------------------------------------------------------------------
+names(processed$`35480328200`)
+
+## ------------------------------------------------------------------------
+head(processed$`35480328200`$affiliation_history[, c("ip-doc.afdispname", "ip-doc.id", "ip-doc.type")], 3)
+
+## ------------------------------------------------------------------------
 journals = purrr:::map_df(processed, `$`, "journals", .id = "au_id")
 head(journals)
+
+## ------------------------------------------------------------------------
+sc_id = jm$df$`dc:identifier`[1]
+cit_try = citation_retrieval(scopus_id = sc_id)
+httr::status_code(cit_try$get_statement)
+cit_try$content
 
 ## ------------------------------------------------------------------------
 file = system.file("extdata", "CTOExport.csv", package = "rscopus")
@@ -179,11 +201,11 @@ head(jhu_info[, c("affil_id", "affil_name")])
 ## ------------------------------------------------------------------------
 sc_id = jm$df$`dc:identifier`[1]
 # retrieve abstract 
-res = abstract_retrieval(id = sc_id, identifier = "scopus_id")
+abstract = abstract_retrieval(id = sc_id, identifier = "scopus_id")
 
 ## ------------------------------------------------------------------------
-sc_info = res$content$`abstracts-retrieval-response`
-substr(sc_info$coredata$`dc:description`, 1, 220)
+sc_info = abstract$content$`abstracts-retrieval-response`
+substr(sc_info$coredata$`dc:description`, 1, 76)
 
 ## ------------------------------------------------------------------------
 sc_df = purrr::map_df(sc_info$authors[[1]],

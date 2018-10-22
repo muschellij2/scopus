@@ -9,7 +9,7 @@ author:
     email: jmuschel@jhsph.edu
     url: http://johnmuschelli.com  
 abstract: >
-    We demonstrate how to download author and affiliation using the `rscopus` package, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to obtain the number of citations from an author and use that to  calculate citation metrics with the output.  We additionally show how to download additional information from an article such as the figures and supplemental material.
+    We demonstrate how to download author and affiliation using the `rscopus` package, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to obtain the number of citations from an author and use that to  calculate citation metrics with the output.  We also show how to download additional information from an article such as the figures and supplemental material.
 bibliography: muschelli.bib
 output:
   rticles::rjournal_article
@@ -28,19 +28,19 @@ library(rscopus)
 
 # Introduction
 
-Elsevier provides a number of APIs (application program interfaces) to extract information about science and research (https://dev.elsevier.com/).  This information is can provide insights into how research is done and provide the data to perform experiments and analyses of metascience.  In many cases, we would like to gather information about publications, authors, and institutions with respect to published research.  Elsevier's Scopus a repository of information about scientific articles and books, which includes information about authors, citations, and abstracts.  Scopus claims to have the largest database of this information (https://www.elsevier.com/solutions/scopus).  Therefore, providing users an interface to this repository should be worthwhile.
+Elsevier provides a number of APIs (application program interfaces) to extract information about scholarly publications (https://dev.elsevier.com/).  This information is can provide insights into how research is done and provide the data to perform experiments and analyses of metascience.  Elsevier's Scopus a repository of information about articles, authors, and institutions. Scopus claims to have the largest database of this information (https://www.elsevier.com/solutions/scopus).  Therefore, providing users an interface to this repository should be worthwhile.
 
-One common task for researchers is to keep his or her curriculum vitae (CV) up to date.  That requires having accurate information on the papers published and under submission.  Keeping track of these papers can be tedious and solutions could exist if one could retrieve papers automatically.  One concern is missing certain crucial papers in your CV.  Although \CRANpkg{rscopus} does not provide these tools specifically, it can be used to consistently cross-reference information about publications with a CV.  
+One common task for researchers is to keep his or her curriculum vitae (CV) up to date.  That requires having accurate information on the papers published and under submission.  Keeping track of these papers can be tedious and solutions could exist if one could retrieve papers automatically.  One concern is missing certain crucial papers in your CV.  Although \CRANpkg{rscopus} does not provide these tools specifically, it provides tools to download publications about an author, which can be be used to consistently cross-reference information about publications with a CV.  
 
-Additionally on CVs, one may present information of the impact of a paper.  This can be done by highlighting certain pieces of information, such is done in NIH biosketches, or ranking papers based on some metric.  As promotions and grant review may be affected by highlighting impact, these metrics can have real-life implications. One metric commonly used is the number of citations.  Also, information about the journal impact factor may be taken into account.  We do not imply that these are particularly good metrics or metrics that reflect true impact, but are simply those that we have seen used in practice.  
+Additionally on CVs, one may present information of the impact of a paper.  This can be done by highlighting certain pieces of information, such is done in NIH biosketches, or ranking papers based on some metric.  As promotions and grant review may be affected by highlighting impact, these metrics can have real-life implications. One metric commonly used is the number of citations.  Additionally, information about the journal impact factor may be shown.  We do not imply that these are particularly good metrics or metrics that reflect true impact, but are simply those that we have seen used in practice.  
 <!-- In order to get these metrics, we must interface of database with this information and will use Scopus. -->
 
-The \pkg{rscopus} package allows you to interface with Scopus APIs and gather information about authors, affiliations, articles, and abstracts.  Currently in R, packages exist for bibliometric analysis, but commonly require the data to be downloaded from a website or online interface.  For example, the \CRANpkg{bibliometrix} \citep{bibliometrix} package provides a level of integration that is useful for using multiple packages that deal with bibliometric data, incorporating functionality from \CRANpkg{rscopus}.  The \pkg{bibliometrix} package also enables users to analyze data from ISI Web of Knowledge (WoK) and PubMed.  
+The \pkg{rscopus} package allows users to interface with Scopus APIs and gather information about authors, affiliations, articles, and abstracts.  Currently in R, packages exist for bibliometric analysis, but commonly require the data to be downloaded from a website or online interface.  For example, the \CRANpkg{bibliometrix} \citep{bibliometrix} package provides a level of integration that is useful for using multiple packages that deal with bibliometric data, incorporating functionality from \CRANpkg{rscopus}.  The \pkg{bibliometrix} package also enables users to analyze data from ISI Web of Knowledge (WoK) and PubMed.  
 
 Web of Knowledge is one competitor to Scopus, but \pkg{bibliometrix} does not have an interface to the WoK API; therefore data must be manually exported from the site into R.   Additional access to the web of Science API would be useful and has been implemented in a GitHub package \pkg{rwos} (https://github.com/juba/rwos), but is not on CRAN and has not been updated recently (over 1 year).  We have also created an interface with the Web of Science APIs (https://github.com/muschellij2/webofscience), but have not been given access to the APIs to test them as it is still in beta.
  
 
-As compared to Google Scholar, Scopus and WoK claim the information from these sources is more curated.  Other packages such as \CRANpkg{scholar} \citep{scholar} and \CRANpkg{gcite} \citep{gcite} can provide interfaces to the Google Scholar citation information.  Using these in combination with \pkg{rscopus} can more likely guarantee complete information.  Also, comparing these different repositories can demonstrate biases or differences in the number of citations across the different platforms.
+As compared to Google Scholar, Scopus and WoK claim the information from these sources is more curated.  Other packages such as \CRANpkg{scholar} \citep{scholar} and \CRANpkg{gcite} \citep{gcite} can provide interfaces to the Google Scholar citation information.  Using these in combination with \pkg{rscopus} can more likely guarantee complete information.  Also, comparing these different repositories can demonstrate biases or differences in the number of citations across the different platforms.  Also, Scopus has a true API compared to the packages above that extract information from the Google Scholar webpage, which will likely be more stable, more robust to API changes, and be within the terms of service for the user.
 
 Scopus has a number of APIs available (https://dev.elsevier.com/sc_apis.html).  Here we will present examples of how to use the \pkg{rscopus} package, including: searching for authors or affiliations, calculating citation indices for an author, retrieving abstract information on articles, and downloading artifacts from an article.  
 
@@ -51,11 +51,12 @@ Before using the package, one must obtain an access key to the API from [Elsevie
 1.  Go to https://dev.elsevier.com/user/login. Login or create a free account.
 2.  Click "Create API Key".  Put in a label, such as "`rscopus key`".  Add a website.  http://example.com is fine if you do not have a site.
 3.  **Read** and agree to the terms of service if you do indeed agree.
+3. You should be able to test out the API key using the [interactive Scopus APIs](https://dev.elsevier.com/scopus.html).
 4.  Add `Elsevier_API = "API KEY GOES HERE"` to `~/.Renviron` file, or add `export Elsevier_API=API KEY GOES HERE` to your `~/.bash_profile`. 
 
 Alternatively, you you can either set the API key using `rscopus::set_api_key`, which will implicitly set `options("elsevier_api_key" = api_key)`.  You can access the API key using `rscopus::get_api_key`. 
 
-You should be able to test out the API key using the [interactive Scopus APIs](https://dev.elsevier.com/scopus.html).
+
 
 Once you have an API key set up, you can access the key using `get_api_key`, which will check multiple places for the presence of the key:
 
@@ -70,13 +71,13 @@ As you may want to hide this key from documents, the default print options do no
 key
 ```
 
-There are other helpful functions for testing if an API key exists, such as `have_api_key`:
+There are other helpful functions such as `have_api_key`, which tests if an API key has been specified:
 
 ```{r}
 have_api_key()
 ```
 
-In each function, you may pass in the API key as the argument `api_key` as well, rather than specifically look in the `~/.Renviron` or `options()`.  
+In each function to an API endpoint, you may pass in the API key as the argument `api_key` as well, rather than specifically look in the `~/.Renviron` or `options()`.  
 
 ### A note about API keys and IP addresses
 The API Key is bound to a set of IP addresses, usually from your institution or organization (see https://dev.elsevier.com/tecdoc_api_authentication.html).  Therefore, if you are using \pkg{rscopus} for a Shiny application, you must host the Shiny application from the institution/organization servers in some way.  Also, you cannot access the Scopus API with this key if you are offsite and must VPN into the server or use a computing cluster with an institution IP.
@@ -99,7 +100,7 @@ auth_info = process_author_name(last_name = "Muschelli", first_name = "John",
 auth_info
 ```
 
-The output is a simple list of first and last name with an author ID.  The function chooses the first author found, which may be useful if the author name is somewhat unique.  We will show below how to search when the name is not as unique.  This identifier is unique to this author, though curation errors do happen and someone may have 2 unique identifiers.  These identifiers can be [merged by request](https://service.elsevier.com/app/answers/detail/a_id/14550/supporthub/scopuscontent/kw/merge/) on the Scopus website.   
+The output is a simple list of first and last name with an author ID.  The function chooses the first author found, which may be useful if the author name is somewhat unique.  We will show below how to search when the name is not as unique.  This ID is unique to this author, though curation errors do happen and someone may have 2 unique identifiers.  These identifiers can be [merged by request](https://service.elsevier.com/app/answers/detail/a_id/14550/supporthub/scopuscontent/kw/merge/) on the Scopus website.   
 
 ## Retrieving author citation data
 
@@ -129,15 +130,14 @@ unique_title = function(x) {
 }
 ```
 
-The `data.frame` `df` has the information many users wish to retrieve, which is information about the author documents such as the Scopus ID for that paper (`dc:identifier`), the title of the paper (`dc:title`), and the number of citations (`citedby-count`).  
-Here we present `short_title`, first 3 "relevant" words of the title (see `unique_title` in supplemental material), instead of the full document title from `dc:title` for viewing purposes as titles can be quite long. 
+The `data.frame` `df` has the information many users wish to retrieve, which is information about the author documents such as the Scopus ID for that paper (`dc:identifier`), the title of the paper (`dc:title`), and the number of citations (`citedby-count`). Here we present `short_title`, first 3 "relevant" words of the title (see `unique_title` in supplemental material), instead of the full document title from `dc:title` for viewing purposes as titles can be quite long. 
 
 ```{r}
 jm$df$short_title = unique_title(jm$df$`dc:title`)
 head(jm$df[, c("dc:identifier", "short_title", "citedby-count")])
 ```
 
-We see that the `full_data` has this `df` inside it, with other `data.frame`s:
+We see that the `full_data` has the object `df` duplicated in it, as well as other `data.frame`s:
 ```{r}
 names(jm$full_data)
 ```
@@ -148,13 +148,28 @@ These `data.frame`s can have additional information about co-author affiliations
 head(jm$full_data$author[, c("authid", "authname", "surname", "afid.$", "entry_number")])
 ```
 
-The column `entry_number` indicates which element this information came in the `entry` list (retrieved from `httr::content`, which calls `jsonlite:fromJSON`).  This column should merge with the `data.frame` of citations, as well as the information about author affiliations, which is located in the `affiliation` `data.frame` from `full_data`:
+The column `entry_number` indicates which element this information came in the `entry` list (retrieved from `content` from \CRANpkg{httr} \citep{httr}, which calls `fromJSON` from \CRANpkg{jsonlite} \citep{jsonlite}).  This column should merge with the `data.frame` of citations, as well as the information about author affiliations, which is located in the `affiliation` `data.frame` from `full_data`:
 
 ```{r}
 head(jm$full_data$affiliation[, c("afid", "affiliation-country", "entry_number",  "affilname")])
 ```
 
-This information is rich for understanding information about an author's publication record, how many citations are recorded for a specific article, which journals have been published in, and who has co-authored publications with an author.  For example, one could determine how many international collaborators an author had on papers. 
+This information is rich for understanding information about an author's publication record, how many citations are recorded for a specific article, which journals have been published in, and who has co-authored publications with an author.  Here we rank the authors based on number of co-authored publications.  We will use \CRANpkg{dplyr} \citep{dplyr} for data manipulation:
+
+```{r}
+library(dplyr)
+au_id = unique(jm$df$au_id) 
+co_authors = jm$full_data$author %>% 
+  filter(!authid %in% au_id)
+co_authors = co_authors %>% 
+  add_count(authid) %>%
+  select(n, authid, authname, surname) %>% 
+  distinct() %>% arrange(-n)
+head(co_authors)
+```
+
+More analyses of co-authorship can be done, such as determining how many international collaborators an author had on papers based on affiliation.
+
 
 ## Retrieving summary information about an author
 
@@ -166,20 +181,19 @@ names(author_info$content)
 class(author_info$content$`author-retrieval-response`)
 ```
 
-In the standard output from the Scopus API after conversion in `httr`, there are elements of the list named `entries` or `entry`.  The low-level function `gen_entries_to_df` attempts to coerce this list into a standard `data.frame` for more usability, but may not perform perfectly as lists from JSON cannot always be directly coerced into a rectangular format.  For example, here we will convert that output into a `data.frame`:
+In the standard output from the Scopus API after conversion in \pkg{httr}, there are elements of the list named `entries` or `entry`.  The low-level function `gen_entries_to_df` attempts to coerce this list into a standard `data.frame` for more usability, but may not perform perfectly as lists from JSON cannot always be directly coerced into a rectangular format.  For example, here we will convert that output into a `data.frame`:
 
 ```{r}
 gen_entries_to_df(author_info$content$`author-retrieval-response`)$df
 ```
-but this list from `author_retrieval` typically only has one element, and may be easily referenced using `$` as a list.  Overall, `author_retrieval` gives general info about an author, but this information and more can likely be extracted using the `author_data` function above.  
+but this list from `author_retrieval` typically only has one element, and may be easily referenced using `$` as a list.  Most of the functions implicitly call `gen_entries_to_df` to convert the data when available, and additional organizing functions exist such as `process_complete_multi_author_info` discussed below.   Overall, `author_retrieval` gives general info about an author, but this information and more can likely be extracted using the `author_data` function above.  
 
 
 ## Calculating author indices
 
-With the data from the `author_data` output (`jm$df`), we can calculate citation indices.  Here we calculate the overall *h*-index \citep{hirsch2005index}.  We will use \CRANpkg{dplyr} \citep{dplyr} for data manipulation:
+With the data from the `author_data` output (`jm$df`), we can calculate citation indices.  Here we calculate the overall *h*-index \citep{hirsch2005index}:
 
 ```{r}
-library(dplyr)
 h_data = jm$df %>% 
   mutate(citations = as.numeric(`citedby-count`)) %>% 
   arrange(-citations) %>% 
@@ -207,7 +221,7 @@ g_index = max(which(h_data$sum_citations >= h_data$n_papers^2))
 cat(paste0("Calculated g-index is ", g_index))
 ```
 
-Overall, metrics based on citations and the year of publication can be calculated, but longitudinal information is lacking.  We will discuss citation information over time in Section \ref{sec:citetime}.
+We could create a series of metrics based on this data and compare it to or supplement other metrics of performance.  Note, however, longitudinal information is lacking on the number of citations per year.  We will discuss citation information over time in Section \ref{sec:citetime}.
 
 ## Retrieving information about an author
 
@@ -221,9 +235,9 @@ class(auth_info_list)
 names(auth_info_list)
 ```
 
-We see here, which is common in in some low-level functions returned from the `rscopus` API, the output is a list with elements `get_statement`, which returns an object of class `response` (from the \CRANpkg{httr} package \citep{httr}), and `content`, which is the content from the response.  Most times, the `content` is of interest, but failed requrests may be explored with the `get_statement` output for debuggin.  
+We see here, which is common in in some low-level functions returned from the `rscopus` API, the output is a list with elements `get_statement`, which returns an object of class `response` (from the \pkg{httr} package), and `content`, which is the content from the response.  Most times, the `content` is of interest, but failed requests may be explored with the `get_statement` output for debugging.  
 
-Again, we can use `gen_entries_to_df` convert that output into a `data.frame`, which is more manageable:
+Again, we can use `gen_entries_to_df` convert that output into a `data.frame`, which is more manageable.  Here show see the author information retrieved from the call:
 
 ```{r}
 coerced = gen_entries_to_df(auth_info_list$content$`search-results`$entry)
@@ -239,7 +253,8 @@ auth_info_df = get_author_info(last_name = last_name,
                               first_name = first_name)
 head(auth_info_df)
 ```
-but we should note this information is condensed and a subset that is available from `get_complete_author_info`, also with more standardized column names.  Now, one could use the `au_id` retrieved from this output for searching.
+
+We should note this information is condensed and a subset that is available from `get_complete_author_info`, also with more standardized column names.  Now, one could use the `au_id` retrieved from this output for searching and retrieval.
 
 If you had an affiliation ID, such as `60006183` for the Johns Hopkins Bloomberg School of Public Health, we can pass this to `get_author_info` or `process_author_name`:  
 
@@ -269,7 +284,20 @@ processed = process_complete_multi_author_info(all_author_info)
 head(names(processed))
 ```
 
-Now, each element is the author ID, which contains a list of `data.frame`s.  The `multi_author_info` will perform both of these operations together.  This result is still not "tidy" \citep{wickham2014tidy} in many respects, but parts can be combined using \CRANpkg{purrr} \citep{purrr}:
+Now, each element is the author ID, which contains a list of `data.frame`s.  
+
+For example, for the ID `35480328200`, we can see the elements for that specific author.  
+```{r}
+names(processed$`35480328200`)
+```
+
+We can then access the affiliation history, which includes information such as department and university: 
+
+```{r}
+head(processed$`35480328200`$affiliation_history[, c("ip-doc.afdispname", "ip-doc.id", "ip-doc.type")], 3)
+```
+
+The `multi_author_info` will perform both of these operations together.  This result is still not "tidy" \citep{wickham2014tidy} in many respects, but parts can be combined using \CRANpkg{purrr} \citep{purrr}:
 
 ```{r}
 journals = purrr:::map_df(processed, `$`, "journals", .id = "au_id")
@@ -282,9 +310,19 @@ Thus, in the above code we could compare the journals each author published in c
 ## Citations over time
 \label{sec:citetime}
 
-Some APIs from Elsevier are disabled by default (see https://dev.elsevier.com/api_key_settings.html).  Notably, the Citations Overview API is disabled, which allows users to access information about citations over time for articles of authors.  This information is particularly useful for creating bibliometric indices that rely on subsetting data based on mininum or maximum year or calculating time-dependent metrics.  The `rscopus` package interfaces with these APIs, but the API must be enabled for that specific API key.  On the Scopus website one can searching for authors, select up to 15 authors, and then create a "Citation Overview", which will give this citation information, which is in a CSV format.  The \pkg{rscopus} package provides a `read_cto` function to read in this data.  
+Some APIs from Elsevier are disabled by default (see https://dev.elsevier.com/api_key_settings.html).  Notably, the Citations Overview API is disabled, which allows users to access information about citations over time for articles of authors.  This citation information is particularly useful for creating bibliometric indices that rely on subsetting data based on minimum or maximum year or calculating time-dependent metrics.  The `rscopus` package interfaces with these APIs, but the API must be enabled for that specific API key.  Here, we show the output of the failed request as it may be useful for debugging:
+
+```{r}
+sc_id = jm$df$`dc:identifier`[1]
+cit_try = citation_retrieval(scopus_id = sc_id)
+httr::status_code(cit_try$get_statement)
+cit_try$content
+```
+
+On the Scopus website, however, one can searching for authors, select up to 15 authors, and then create a "Citation Overview", which will give this citation information, and export it in a CSV format.  The \pkg{rscopus} package provides a `read_cto` function to read in this data.  
 
 We also provide an example export from a single author in the package:
+
 ```{r}
 file = system.file("extdata", "CTOExport.csv", package = "rscopus")
 citations_over_time = rscopus::read_cto(file)
@@ -356,7 +394,8 @@ In order to get information about an affiliation, the `get_affiliation_info` can
 jhu_info = get_affiliation_info(affil_name = "Johns Hopkins")
 head(jhu_info[, c("affil_id", "affil_name")])
 ```
-This function implicitly calls `affil_search`, a lower-level function which searches the affiliation information from Scopus.  Additional information can be extracted using `affil_search`, but this typically includes a large number of records as it searches all the documents.  This affiliation ID again can be used to be more specific when searching authors or documents.
+
+This function implicitly calls `affil_search`, a lower-level function which searches the affiliation information from Scopus.  Additional information can be extracted using `affil_search`, but this typically includes a large number of records as it searches all the documents.  This affiliation ID again can be used to be more specific when searching authors or documents.  Thus, we see that if we had only used `"Johns Hopkins"` as the query and not  `"Johns Hopkins Bloomberg School of Public Health"`, we would get back a different top candidate.  This specificity is why we recommend using affiliation ID if using affiliation information in `get_author_info`.
 
 ## Searching articles by abstract
 
@@ -365,14 +404,14 @@ In some cases, one may have an article in mind and would like information about 
 ```{r}
 sc_id = jm$df$`dc:identifier`[1]
 # retrieve abstract 
-res = abstract_retrieval(id = sc_id, identifier = "scopus_id")
+abstract = abstract_retrieval(id = sc_id, identifier = "scopus_id")
 ```
 
 Here we will extract the abstract information from the result:
 
 ```{r}
-sc_info = res$content$`abstracts-retrieval-response`
-substr(sc_info$coredata$`dc:description`, 1, 220)
+sc_info = abstract$content$`abstracts-retrieval-response`
+substr(sc_info$coredata$`dc:description`, 1, 76)
 ```
 
 Here we can extract information about the authors of the paper:
@@ -396,7 +435,7 @@ Thus, if we retrieve a single author's information, we can gather other author I
 
 ## Object retrieval
 
-Along with metadata, abstract, and other information about a paper, additional objects may be accessed, such as figures, movies, or supplemental material  The `object_retrieval` function will return the objects associated with the identifier.  The `process_object_retrieval` will convert the output into a tidy `data.frame`: 
+Along with metadata, abstract, and other information about a paper, additional objects may be accessed, such as figures, videos, or supplemental material  The `object_retrieval` function will return the objects associated with the identifier.  The `process_object_retrieval` will convert the output into a tidy `data.frame`: 
 
 ```{r}
 objects = object_retrieval("S1053811915002700", identifier = "pii", verbose = FALSE)
@@ -438,7 +477,7 @@ More advanced usage requires additional information about the Scopus API and its
 
 # Supplemental Material
 
-Here is the simple parser `unique_title` to find the first 3 relevant words of the title after removing non-relevant words froma list in the \CRANpkg{stopwords} package \citep{stopwords}:
+Here is the simple parser `unique_title` to find the first 3 relevant words of the title after removing non-relevant words from a list in the \CRANpkg{stopwords} package \citep{stopwords}:
 
 ```{r, echo = TRUE}
 unique_title = function(x) {
