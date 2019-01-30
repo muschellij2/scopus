@@ -1,5 +1,5 @@
 ---
-title: Gathering Bibliometric Information from the Scopus API using rscopus
+title: Gathering Bibliometric Information from the Scopus API using the `rscopus` `R` Package
 author:
   - name: John Muschelli
     affiliation: Department of Biostatistics, Johns Hopkins Bloomberg School of Public Health
@@ -9,19 +9,22 @@ author:
     email: jmuschel@jhsph.edu
     url: http://johnmuschelli.com  
 abstract: >
-    We demonstrate how to download author and affiliation using the `rscopus` package, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to obtain the number of citations from an author and use that to  calculate citation metrics with the output.  We also show how to download additional information from an article such as the figures and supplemental material.
+    We demonstrate how to download author and affiliation using the `R` package `rscopus`, interacing with the Elsevier Scopus API.  We demonstrate how to manipulate the output from the API into organized data that can be analyzed. We present options on how to obtain the number of citations from an author and use that to  calculate citation metrics with the output.  We also show how to download additional information from an article such as the figures and supplemental material.
 bibliography: muschelli.bib
 output:
   rticles::rjournal_article
 ---
 
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
+  cache = TRUE,
   warning = FALSE,
   comment = ""
 )
+
 library(rscopus)
 ```
 
@@ -474,6 +477,10 @@ using_doi = abstract_retrieval(id = "10.1016/j.neuroimage.2015.03.074", identifi
 The \pkg{rscopus} package provides an interface to the Scopus API through R.  The package allows users to retrieve information about authors, individual articles, or institutions from the API.  The information that can be obtained is limited by the scopes enabled by the API key through Elsevier and the associated organization.  We have shown how to obtain an API key and specific use cases, which we believe covers the a number of the needs of the users.  
 
 More advanced usage requires additional information about the Scopus API and its querying specifications.  The future direction of this package is to create helper functions to construct queries for more targeted views of the data.  Additional APIs from Elsevier have functions for access, such as SciDirect with the `rscopus::sciencedirect_search` function, but the main focus of the package has been Scopus.  Although the goal is to keep all functionality up to date with the number of APIs, the main focus will be consistency and stability with respect to Scopus.  All the code and figures used to create this paper are located at https://github.com/muschellij2/scopus and the paper was created using the \CRANpkg{rticles} package \citep{rticles}.  
+
+# Funding
+
+This research was supported by the Department of Biostatistics at Johns Hopkins Bloomberg School of Public Health.
 
 # Supplemental Material
 

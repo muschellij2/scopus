@@ -2,9 +2,11 @@
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
+  cache = TRUE,
   warning = FALSE,
   comment = ""
 )
+
 library(rscopus)
 
 ## ------------------------------------------------------------------------
