@@ -1,0 +1,3 @@
+* We provide an R package rscopus to download Scopus bibliometric information.
+* You can search based on author information or articles.
+* We present how to calculate individual h-indices and other metrics based on the data.
